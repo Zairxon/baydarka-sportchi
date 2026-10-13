@@ -148,11 +148,13 @@ export default function ExerciseCard({ s, x, log, draft, setDraft, age, onSave, 
       {!hr && !manual && allDone && <button className="link" onClick={() => setManual(true)}>Pulsni qo'lda kiritish</button>}
       {!hr && manual && (
         <div className="grid">
-          <label className="req">Puls * (urish/daq)
-            <input className="input" inputMode="numeric" onChange={e => setDraft({ hr1: num(e.target.value) })} />
+          <label className="req">Puls * (10 soniyadagi urishlar)
+            <input className="input" inputMode="numeric" value={draft?.b1 ?? ''} onChange={e => { const b = e.target.value.replace(/D/g, ''); setDraft({ b1: b, hr1: b ? Number(b) * 6 : null }) }} />
+            {draft?.b1 && <span className="conv">{draft.b1} × 6 = <b>{Number(draft.b1) * 6}</b></span>}
           </label>
-          <label>1 daq dam olgandan keyin
-            <input className="input" inputMode="numeric" onChange={e => setDraft({ hr2: num(e.target.value) })} />
+          <label>1 daq dam olgandan keyin (10 soniyadagi urishlar)
+            <input className="input" inputMode="numeric" value={draft?.b2 ?? ''} onChange={e => { const b = e.target.value.replace(/D/g, ''); setDraft({ b2: b, hr2: b ? Number(b) * 6 : null }) }} />
+            {draft?.b2 && <span className="conv">{draft.b2} × 6 = <b>{Number(draft.b2) * 6}</b></span>}
           </label>
         </div>
       )}

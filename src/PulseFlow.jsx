@@ -102,7 +102,7 @@ export default function PulseFlow({ age, baseRest, onDone }) {
       <div className="pulse">
         <b>{first ? '1-o\'lchov' : '2-o\'lchov (1 daqiqa dam olgandan keyin)'}: 10 soniyada nechta urish?</b>
         <input className="input big" inputMode="numeric" autoFocus value={beats} onChange={e => setBeats(e.target.value.replace(/\D/g, ''))} placeholder="masalan, 25" />
-        {beats && validBeats10(beats) && <div className="muted small">Puls ≈ <b>{bpmFrom10(beats)}</b> urish/daq</div>}
+        {beats && validBeats10(beats) && <div className="conv">{beats} × 6 = <b>{bpmFrom10(beats)}</b> <span className="muted small">urish/daq</span></div>}
         {beats && !validBeats10(beats) && <div className="err">10 soniyada 5 dan 40 gacha urish bo'ladi.</div>}
         <button className="btn" disabled={!validBeats10(beats)} onClick={first ? confirm1 : confirm2}>Tasdiqlash</button>
       </div>

@@ -80,3 +80,4 @@ h1 { margin: 4px 0; font-size: 28px; } h2 { font-size: 18px; margin: 16px 0 8px;
 .chip.on small { color: #1C1612; }
 .field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); margin-top: 10px; }
 .mt { margin-top: 12px; }
+.conv { font-size: 22px; margin-top: 4px; color: var(--accent); } .conv b { font-size: 34px; color: var(--text); }
