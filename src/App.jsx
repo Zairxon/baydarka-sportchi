@@ -246,7 +246,7 @@ function Session({ s, plan, age, onBack, onSave, onFeedback }) {
         <div className="muted small">{dayLabel(s.session_date)} · {SLOT[s.slot] || ''}</div>
       </header>
       <div className="topic big">{s.topic || '—'}</div>
-      <div className="muted small">{s.zone ? `Zona: ${s.zone} · ` : ''}{doneCount}/{sorted.length} mashq bajarildi{s.planned_minutes ? ` · ${formatDuration(s.planned_minutes * 60)} soat` : ''}</div>
+      <div className="muted small">{s.zone ? `Zona: ${s.zone} · ` : ''}{doneCount}/{sorted.length} mashq bajarildi{s.planned_minutes ? ` · ${s.planned_minutes} daq` : ''}</div>
       {warn && <div className={`advice ${warn.stop ? 'bad' : 'warn'}`}><p>{warn.text}</p></div>}
       {sorted.length === 0 && <div className="empty">Murabbiy hali mashqlarni kiritmagan.</div>}
       {sorted.map(x => (
