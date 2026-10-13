@@ -20,3 +20,4 @@ async function rpc(name, args) {
 export const login = (l, p) => rpc('athlete_login', { p_login: l, p_password: p })
 export const loadPlan = (a, from, to) => rpc('athlete_plan', { p_login: a.login, p_password: a.password, p_from: from, p_to: to })
 export const submitLogs = (a, rows) => rpc('athlete_submit', { p_login: a.login, p_password: a.password, p_rows: rows })
+export const submitFeedback = (a, row) => rpc('athlete_feedback', { p_login: a.login, p_password: a.password, p_row: row })
