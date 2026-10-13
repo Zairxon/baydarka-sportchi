@@ -81,3 +81,4 @@ h1 { margin: 4px 0; font-size: 28px; } h2 { font-size: 18px; margin: 16px 0 8px;
 .field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); margin-top: 10px; }
 .mt { margin-top: 12px; }
 .conv { font-size: 22px; margin-top: 4px; color: var(--accent); } .conv b { font-size: 34px; color: var(--text); }
+.rule { background: var(--elev); border-radius: 8px; padding: 6px 10px; margin: 8px 0; font-size: 14px; color: var(--accent); }

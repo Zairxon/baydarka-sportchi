@@ -24,6 +24,7 @@ export function planText(x) {
   if (x.mode === 'timed') return [p.sets > 1 ? `${p.sets} marta` : '', p.time ? `har biri ${t(p.time)}` : ''].filter(Boolean).join(' · ')
   if (x.mode === 'water') return [p.segments ? `${p.segments} otrezok` : '', p.distance ? `${p.distance} m` : ''].filter(Boolean).join(' × ')
   if (x.mode === 'time') return p.time ? t(p.time) : ''
+  if (x.mode === 'phases') return (p.phases || []).map(f => `${f.name} ${t(f.sec)}`).join(' + ')
   return ''
 }
 
@@ -32,17 +33,22 @@ const emptySet = (x, i) => {
   if (x.mode === 'weight') return { w: p.weight != null ? String(p.weight) : '', r: '', done: false }
   if (x.mode === 'timed') return { r: '', t: p.time || 0, done: false }
   if (x.mode === 'water' || x.mode === 'time') return { t: '', done: false, n: i + 1 }
+  if (x.mode === 'phases') return { r: '', done: false }
   return { r: '', done: false }
 }
 
 function initialSets(x, log) {
-  if (log?.detail?.sets?.length) return log.detail.sets.map(s => ({ ...s, w: s.w != null ? String(s.w) : '', r: s.r != null ? String(s.r) : '', t: x.mode === 'water' || x.mode === 'time' ? (s.t != null ? formatDuration(s.t) : '') : s.t, done: true }))
+  if (x.mode !== 'phases' && log?.detail?.sets?.length) return log.detail.sets.map(s => ({ ...s, w: s.w != null ? String(s.w) : '', r: s.r != null ? String(s.r) : '', t: x.mode === 'water' || x.mode === 'time' ? (s.t != null ? formatDuration(s.t) : '') : s.t, done: true }))
   const p = x.plan || {}
+  if (x.mode === 'phases') {
+    const ph = log?.detail?.sets?.length ? log.detail.sets.map(f => ({ name: f.phase, sec: f.t })) : (p.phases || [])
+    return ph.map((f, i) => ({ name: f.name, sec: f.sec, r: log?.detail?.sets?.[i]?.r != null ? String(log.detail.sets[i].r) : '', done: !!log }))
+  }
   const n = x.mode === 'water' ? p.segments || 1 : x.mode === 'time' ? 1 : p.sets || 1
   return Array.from({ length: n }, (_, i) => emptySet(x, i))
 }
 
-export default function ExerciseCard({ s, x, log, draft, setDraft, age, onSave, justSaved, onFlowResult }) {
+export default function ExerciseCard({ s, x, log, draft, setDraft, age, boat, setBoat, onSave, justSaved, onFlowResult }) {
   const [info, setInfo] = useState(false)
   const [err, setErr] = useState('')
   const sets = draft?.sets || initialSets(x, log)
@@ -62,6 +68,7 @@ export default function ExerciseCard({ s, x, log, draft, setDraft, age, onSave, 
     const st = sets[i]
     if (!st.done) {
       const ok = x.mode === 'water' || x.mode === 'time' ? parseDuration(st.t) > 0
+        : x.mode === 'phases' ? st.r !== '' && num(st.r) >= 0
         : x.mode === 'weight' ? num(st.r) > 0 && (st.w === '' || num(st.w) >= 0)
         : num(st.r) > 0
       if (!ok) return setErr(x.mode === 'water' || x.mode === 'time' ? 'Vaqtni kiriting (2:35 yoki sekund).' : 'Necha marta qilganingizni kiriting.')
@@ -88,6 +95,10 @@ export default function ExerciseCard({ s, x, log, draft, setDraft, age, onSave, 
       reps = doneSets.reduce((a, st) => a + Math.round(num(st.r)), 0)
       duration = doneSets.reduce((a, st) => a + (Number(st.t) || 0), 0) || null
       detail = doneSets.map(st => ({ r: Math.round(num(st.r)), t: Number(st.t) || null }))
+    } else if (x.mode === 'phases') {
+      reps = doneSets.reduce((a, st) => a + Math.round(num(st.r)), 0)
+      duration = doneSets.reduce((a, st) => a + (Number(st.sec) || 0), 0) || null
+      detail = doneSets.map(st => ({ phase: st.name, t: Number(st.sec) || null, r: Math.round(num(st.r)) }))
     } else if (x.mode === 'water') {
       const ts = doneSets.map(st => parseDuration(st.t))
       reps = ts.length
@@ -102,11 +113,12 @@ export default function ExerciseCard({ s, x, log, draft, setDraft, age, onSave, 
       id: id || uuid(), session_id: s.id, session_exercise_id: x.sx, exercise_id: x.ex, set_no: x.set_no ?? 1,
       logged_on: s.session_date, reps, weight_kg: weight, duration_seconds: duration, distance_m: distance,
       heart_rate: Math.round(hr.hr1), recovery_hr: hr.hr2 == null ? null : Math.round(hr.hr2),
-      note: draft?.note || null, detail: { sets: detail },
+      note: draft?.note || null, detail: { sets: detail, ...(x.mode === 'phases' ? { water: draft?.water ?? log?.detail?.water ?? null } : {}) },
     })
   }
 
-  const setHeader = x.mode === 'weight' ? ['Kg', 'Marta'] : x.mode === 'timed' ? ['Marta', 'Vaqt'] : x.mode === 'water' ? ['Otrezok', 'Vaqt (m:ss)'] : x.mode === 'time' ? ['', 'Vaqt (m:ss)'] : ['', 'Marta']
+  const strokeWord = x.count === 'stroke' ? 'Zarba' : 'Marta'
+  const setHeader = x.mode === 'phases' ? ['Qism', `${strokeWord} soni`] : x.mode === 'weight' ? ['Kg', 'Marta'] : x.mode === 'timed' ? [strokeWord, 'Vaqt'] : x.mode === 'water' ? ['Otrezok', 'Vaqt (m:ss)'] : x.mode === 'time' ? ['', 'Vaqt (m:ss)'] : ['', 'Marta']
 
   return (
     <div className={`card ex ${done ? 'done' : ''}`}>
@@ -119,6 +131,8 @@ export default function ExerciseCard({ s, x, log, draft, setDraft, age, onSave, 
         <div className="task">Reja: <b>{planText(x) || x.prescription}</b>{planText(x) && x.prescription && planText(x) !== x.prescription ? <span className="muted small"> ({x.prescription})</span> : null}</div>
       )}
 
+      {x.count === 'stroke' && <CountRule boat={boat} setBoat={setBoat} />}
+      {x.mode === 'phases' && <PhasesRunner phases={x.plan?.phases || []} />}
       <div className="setrow head"><span /><span>{setHeader[0]}</span><span>{setHeader[1]}</span><span /></div>
       {sets.map((st, i) => (
         <div key={i} className={`setrow ${st.done ? 'done' : ''}`}>
@@ -135,6 +149,10 @@ export default function ExerciseCard({ s, x, log, draft, setDraft, age, onSave, 
             <input className="input" inputMode="numeric" placeholder="marta" value={st.r ?? ''} onChange={e => patchSet(i, { r: e.target.value })} />
             <Countdown seconds={st.t} />
           </>}
+          {x.mode === 'phases' && <>
+            <span className="muted small center">{st.name} · {formatDuration(st.sec)}</span>
+            <input className="input" inputMode="numeric" placeholder="zarba" value={st.r ?? ''} onChange={ev => patchSet(i, { r: ev.target.value.replace(/\D/g, '') })} />
+          </>}
           {(x.mode === 'water' || x.mode === 'time') && <>
             <span className="muted small center">{x.mode === 'water' ? `${x.plan?.distance ? x.plan.distance + ' m' : ''}` : ''}</span>
             <input className="input" inputMode="text" placeholder={x.plan?.time ? formatDuration(x.plan.time) : '2:35'} value={st.t ?? ''} onChange={e => patchSet(i, { t: e.target.value })} />
@@ -142,6 +160,12 @@ export default function ExerciseCard({ s, x, log, draft, setDraft, age, onSave, 
           <button className={`tick ${st.done ? 'on' : ''}`} onClick={() => tick(i)} aria-label="Tayyor">✓</button>
         </div>
       ))}
+      {x.mode === 'phases' && (
+        <div className="chips"><span className="muted small" style={{ alignSelf: 'center' }}>Kanalda:</span>
+          {[['yes', 'Suv bor'], ['no', "Suv yo'q"]].map(([k, l]) => (
+            <button key={k} className={`chip ${(draft?.water ?? log?.detail?.water) === k ? 'on' : ''}`} onClick={() => setDraft({ water: k, id: id || uuid() })}>{l}</button>
+          ))}</div>
+      )}
       {(x.mode === 'weight' || x.mode === 'reps') && <button className="add" onClick={addSet}>＋ Urinish</button>}
 
       {allDone && !hr && !manual && <PulseFlow age={age} baseRest={x.rest} onDone={r => { setDraft({ hr1: r.hr1, hr2: r.hr2, adv: r.advice?.level }); onFlowResult?.(x, r.advice) }} />}
@@ -206,6 +230,64 @@ function InfoSheet({ x, onClose }) {
         {i.tip && <div className="advice warn"><b>Maslahat:</b> {i.tip}</div>}
         {!i.steps?.length && !i.tip && !i.muscles && <div className="muted">Tavsif yo'q.</div>}
       </div>
+    </div>
+  )
+}
+
+// Как считать гребки: у байдарки «влево + вправо» — одно повторение, у каноэ один гребок — одно.
+function CountRule({ boat, setBoat }) {
+  if (!boat) {
+    return (
+      <div className="advice warn">
+        <div>Qaysi qayiqda eshasiz? Hisoblash qoidasi shunga bog'liq.</div>
+        <div className="chips">
+          <button className="chip" onClick={() => setBoat('kayak')}>Baydarka</button>
+          <button className="chip" onClick={() => setBoat('canoe')}>Kanoe</button>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="rule">
+      {boat === 'kayak' ? "Baydarka: chap + o'ng = 1 marta" : 'Kanoe: 1 zarba = 1 marta'}
+      <button className="link" onClick={() => setBoat(boat === 'kayak' ? 'canoe' : 'kayak')}> o'zgartirish</button>
+    </div>
+  )
+}
+
+// Ведёт по частям тренировки на тренажёре: 3-2-1, затем каждая часть со звуком на границах.
+function PhasesRunner({ phases }) {
+  const [st, setSt] = useState({ i: -1, until: 0 })   // i = -1: не запущено; -2: отсчёт 3-2-1
+  const [now, setNow] = useState(Date.now())
+  const active = st.i !== -1
+  useEffect(() => {
+    if (!active) return undefined
+    const id = setInterval(() => setNow(Date.now()), 150)
+    return () => clearInterval(id)
+  }, [active])
+  const left = Math.max(0, st.until - now)
+  const sec = Math.ceil(left / 1000)
+  useEffect(() => {
+    if (!active) return
+    if ((st.i === -2 || sec <= 3) && sec > 0) tickBeep()
+    if (left > 0) return
+    if (st.i === -2) { goBeep(); setSt({ i: 0, until: Date.now() + phases[0].sec * 1000 }) }
+    else if (st.i + 1 < phases.length) { goBeep(); setSt({ i: st.i + 1, until: Date.now() + phases[st.i + 1].sec * 1000 }) }
+    else { stopBeep(); setSt({ i: -1, until: 0 }) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sec, st.i])
+  if (!phases.length) return null
+  if (!active) {
+    return <button className="btn ghost" onClick={() => { unlockAudio(); setNow(Date.now()); setSt({ i: -2, until: Date.now() + 3000 }) }}>▶ Boshlash (3-2-1, qismlar bo'yicha taymer)</button>
+  }
+  if (st.i === -2) return <div className="pulse center"><div className="muted">Tayyorlaning</div><div className="bignum">{Math.max(sec, 1)}</div></div>
+  const ph = phases[st.i]
+  return (
+    <div className="pulse center go">
+      <div className="goText">{ph.name}</div>
+      <div className="bignum">{formatDuration(sec)}</div>
+      <div className="muted small">{phases[st.i + 1] ? `Keyingi: ${phases[st.i + 1].name} ${formatDuration(phases[st.i + 1].sec)}` : 'Oxirgi qism'}</div>
+      <button className="link" onClick={() => setSt({ i: -1, until: 0 })}>To'xtatish</button>
     </div>
   )
 }

@@ -12,7 +12,7 @@ const store = {
 }
 
 const SLOT = { morning: 'Ertalabki', evening: 'Kechki' }
-const EMPTY_PLAN = { sessions: [], logs: [], feedback: [], age: null }
+const EMPTY_PLAN = { sessions: [], logs: [], feedback: [], age: null, boat: null }
 
 export default function App() {
   const [auth, setAuth] = useState(() => store.get('bs_auth'))
@@ -129,7 +129,7 @@ function Main({ auth, me, onLogout }) {
   const opened = open && plan.sessions.find(s => s.id === open)
 
   if (opened) {
-    return <Session s={opened} plan={plan} age={me.age ?? plan.age} onBack={() => setOpen(null)} onSave={saveRows} onFeedback={saveFeedback} />
+    return <Session s={opened} plan={plan} age={me.age ?? plan.age} boat0={plan.boat ?? me.boat} onBack={() => setOpen(null)} onSave={saveRows} onFeedback={saveFeedback} />
   }
 
   return (
@@ -203,7 +203,11 @@ function DayStrip({ day, setDay, today, sessions }) {
   )
 }
 
-function Session({ s, plan, age, onBack, onSave, onFeedback }) {
+function Session({ s, plan, age, boat0, onBack, onSave, onFeedback }) {
+  // Лодка: из карточки спортсмена, иначе спортсмен выбирает один раз.
+  const [boatPick, setBoatPick] = useState(() => store.get('bs_boat'))
+  const boat = boat0 || boatPick
+  const setBoat = b => { store.set('bs_boat', b); setBoatPick(b) }
   const [drafts, setDrafts] = useState(() => store.get('bs_drafts', {}))
   const [savedId, setSavedId] = useState('')
   const [finish, setFinish] = useState(false)
@@ -250,7 +254,7 @@ function Session({ s, plan, age, onBack, onSave, onFeedback }) {
       {warn && <div className={`advice ${warn.stop ? 'bad' : 'warn'}`}><p>{warn.text}</p></div>}
       {sorted.length === 0 && <div className="empty">Murabbiy hali mashqlarni kiritmagan.</div>}
       {sorted.map(x => (
-        <ExerciseCard key={x.sx} s={s} x={x} age={age}
+        <ExerciseCard key={x.sx} s={s} x={x} age={age} boat={boat} setBoat={setBoat}
           log={myLogs.find(l => l.session_exercise_id === x.sx)}
           draft={drafts[x.sx]} setDraft={p => setDraft(x.sx, p)}
           onFlowResult={onFlowResult}
