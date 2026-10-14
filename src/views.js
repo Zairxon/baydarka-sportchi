@@ -135,7 +135,7 @@ export function gymKcal(s, exs) {
 // ---------- каталог упражнений (зал, ОФП) ----------
 export function pickerSheet(kind) {
   const q = S.pickQ.trim().toLowerCase()
-  const pool = CAT.filter(c => kind === 'gym' ? !['warm', 'game', 'special'].includes(c.group) : ['reps', 'time'].includes(c.mode))
+  const pool = CAT.filter(c => c.kinds?.includes(kind))
   const groups = [...new Set(pool.map(c => c.group))]
   const list = pool.filter(c => (!S.pickG || c.group === S.pickG) && (!q || c.name.toLowerCase().includes(q)))
   openSheet(`<div class="between"><h2>Mashq qo'shish</h2><button class="link" data-close>✕</button></div>
