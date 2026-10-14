@@ -4,9 +4,11 @@ import { store } from './store.js'
 import { apiLogin, sync, queue } from './api.js'
 import { isoDate, addDays, formatDuration, esc } from './util.js'
 import { toast, closeSheet, applyTheme, flipTheme } from './ui.js'
+import { tr, tt, setLang } from './i18n.js'
+import { mountFooter, draw as drawFooter } from './footer.js'
 import { bindRestBar } from './flows.js'
 import { cardAction, onInput, addExtra } from './cards.js'
-import { heroHtml, loginHtml, tabsHtml, todayHtml, deptHtml, sessionHtml, statsHtml, pickerSheet, finishSheet, finishDone, profileSheet, kindOfSession, gymKcal } from './views.js'
+import { langSheet, heroHtml, loginHtml, tabsHtml, todayHtml, deptHtml, sessionHtml, statsHtml, pickerSheet, finishSheet, finishDone, profileSheet, kindOfSession, gymKcal } from './views.js'
 
 applyTheme()
 S.starts = store.get('starts', {})
@@ -15,15 +17,16 @@ let loginErr = '', loginBusy = false
 
 function render() {
   const y = window.scrollY
-  $('hero').innerHTML = heroHtml()
-  if (!S.auth || !S.me) { $('app').innerHTML = loginHtml(loginErr, loginBusy); return }
+  $('hero').innerHTML = tr(heroHtml())
+  if (!S.auth || !S.me) { $('app').innerHTML = tr(loginHtml(loginErr, loginBusy)); drawFooter(); return }
   let body
   if (S.open && S.plan.sessions.some(s => s.id === S.open)) body = sessionHtml()
   else {
     S.open = null
     body = tabsHtml() + (S.tab === 'today' ? todayHtml() : S.tab === 'stats' ? statsHtml() : deptHtml(S.tab))
   }
-  $('app').innerHTML = body
+  $('app').innerHTML = tr(body)
+  drawFooter()
   window.scrollTo(0, y)
 }
 S.render = render
@@ -42,7 +45,7 @@ async function doSync(quiet = true) {
     if (e.status === 400 && /forbidden/.test(e.message)) return logout()   // логин или пароль сменили
   }
   const a = document.activeElement
-  if (quiet && a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) { $('hero').innerHTML = heroHtml(); return }   // не мешаем вводу
+  if (quiet && a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) { $('hero').innerHTML = tr(heroHtml()); return }   // не мешаем вводу
   render()
 }
 S.afterSave = () => { doSync(false) }
@@ -79,6 +82,8 @@ document.addEventListener('click', async e => {
     return
   }
   if (act === 'theme') return flipTheme()
+  if (act === 'lang') return langSheet()
+  if (act === 'setlang') { setLang(el.dataset.l); closeSheet(); return render() }
   if (act === 'install') { await S.installEvent?.prompt(); S.installEvent = null; S.canInstall = false; return render() }
   if (act === 'tab') { S.tab = el.dataset.tab; S.open = null; return render() }
   if (act === 'day') { S.day = addDays(S.day || isoDate(), Number(el.dataset.d)); return render() }
@@ -90,7 +95,7 @@ document.addEventListener('click', async e => {
   }
   if (act === 'back') { if (history.state?.s) history.back(); else { S.open = null; render() } return }
   if (act === 'profile') return profileSheet()
-  if (act === 'logout') { if (confirm('Chiqishni xohlaysizmi?')) { closeSheet(); logout() } return }
+  if (act === 'logout') { if (confirm(tt('Chiqishni xohlaysizmi?'))) { closeSheet(); logout() } return }
   if (act === 'pfboat') { S.settings.boat = el.dataset.b; saveSettings(); profileSheet(); return render() }
 
   // каталог упражнений
@@ -151,5 +156,6 @@ setInterval(() => {
 
 bindRestBar()
 render()
+mountFooter()
 if (S.auth) doSync(true)
 if ('serviceWorker' in navigator && location.protocol === 'https:') window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}))

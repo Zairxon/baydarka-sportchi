@@ -4,6 +4,7 @@ import { esc, dayLabel, dayShort, addDays, isoDate, formatDuration } from './uti
 import { muscleLoad, MUSCLES, epley, setKcal, LEVELS } from './gym.js'
 import { RPE_LABELS, finishAdvice, maxHr } from './advice.js'
 import { openSheet } from './ui.js'
+import { LANGS, getLang, exName } from './i18n.js'
 
 export const kindOfSession = s => {
   if (s.kind && KINDS[s.kind]) return s.kind
@@ -19,7 +20,7 @@ export function heroHtml() {
   const st = !S.auth ? '' : pendingCount() > 0 ? '<span class="hero-status warn">yuborilmagan yozuvlar bor</span>' : S.online === false ? '<span class="hero-status warn">internet yo\'q</span>' : S.online ? '<span class="hero-status ok">sinxronlangan</span>' : ''
   return `<img class="logo" src="./pwa-192x192.png" alt="">
     <div class="hero-t"><div class="hero-title">Baydarka · Sportchi</div><div class="hero-sub">${S.me ? esc(S.me.full_name) + (S.me.group_name ? ' · ' + esc(S.me.group_name) : '') : 'Sportchi kundaligi'}</div>${st}</div>
-    <div class="hbtns"><button class="hbtn" data-act="theme" aria-label="Mavzu">◐</button>${S.auth ? '<button class="hbtn" data-act="profile" aria-label="Profil">☰</button>' : ''}</div>`
+    <div class="hbtns"><button class="hbtn" data-act="lang" aria-label="Til">🌐</button><button class="hbtn" data-act="theme" aria-label="Mavzu">◐</button>${S.auth ? '<button class="hbtn" data-act="profile" aria-label="Profil">☰</button>' : ''}</div>`
 }
 
 export function loginHtml(err = '', busy = false) {
@@ -141,7 +142,7 @@ export function pickerSheet(kind) {
   openSheet(`<div class="between"><h2>Mashq qo'shish</h2><button class="link" data-close>✕</button></div>
     <input id="pk-q" placeholder="Qidirish…" value="${esc(S.pickQ)}">
     <div class="chips"><button class="pill" aria-pressed="${!S.pickG}" data-act="pkg" data-g="">Hammasi</button>${groups.map(g => `<button class="pill" aria-pressed="${S.pickG === g}" data-act="pkg" data-g="${g}">${MUSCLES[g] || g}</button>`).join('')}</div>
-    <div class="list">${list.slice(0, 60).map(c => `<button class="item" data-act="pickadd" data-id="${c.id}"><span class="main"><b>${esc(c.name)}</b><span class="muted small">${MUSCLES[c.group] || c.cat}${c.level ? ' · ' + LEVELS[c.level].t : ''}</span></span><span class="chip">＋</span></button>`).join('') || '<div class="empty">Topilmadi</div>'}</div>`)
+    <div class="list">${list.slice(0, 60).map(c => `<button class="item" data-act="pickadd" data-id="${c.id}"><span class="main"><b>${esc(exName(c, c.name))}</b><span class="muted small">${MUSCLES[c.group] || c.cat}${c.level ? ' · ' + LEVELS[c.level].t : ''}</span></span><span class="chip">＋</span></button>`).join('') || '<div class="empty">Topilmadi</div>'}</div>`)
   const inp = document.getElementById('pk-q'); if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length) }
 }
 
@@ -186,13 +187,13 @@ export function statsHtml() {
   const top = [...best.entries()].sort((a, b) => b[1].v - a[1].v).slice(0, 6)
   // Лучшие времена на воде: лучший отрезок на 500 м.
   const waterBest = []
-  for (const l of logs) { const c = catById.get(l.exercise_id); if (c?.mode === 'water') for (const t of l.detail?.sets || []) if (t.t) waterBest.push({ n: c.name, t: t.t, d: l.logged_on }) }
+  for (const l of logs) { const c = catById.get(l.exercise_id); if (c?.mode === 'water') for (const t of l.detail?.sets || []) if (t.t) waterBest.push({ n: exName(c, c.name), t: t.t, d: l.logged_on }) }
   waterBest.sort((a, b) => a.t - b.t)
   return `<section>
     <div class="kpis"><div class="kpi"><span>Mashg'ulot kuni</span><b>${rows.length}</b></div><div class="kpi"><span>Yozilgan mashq</span><b>${logs.length}</b></div><div class="kpi"><span>O'rtacha puls</span><b>${avg ?? '—'}</b></div></div>
     <h2>Mushaklar yuklamasi (7 kun)</h2>
     <div class="panel">${Object.keys(load).length ? Object.entries(load).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<div class="barrow"><span>${MUSCLES[g] || g}</span><div><div class="bar" style="width:${Math.round((n / maxLoad) * 100)}%"></div></div><span class="num">${n}</span></div>`).join('') + '<div class="note">Raqam — oxirgi 7 kundagi urinishlar soni.</div>' : '<div class="empty">Hali zal natijalari yo\'q.</div>'}</div>
-    ${top.length ? `<h2>Eng yaxshi natijalar (zal)</h2><div class="panel"><div class="list">${top.map(([id, b]) => `<div class="item" style="cursor:default"><span class="main"><b>${esc(catById.get(id)?.name || '—')}</b><span class="muted small">${b.t.w ? `${b.t.w} kg × ${b.t.r}` : `${b.t.r} marta`} · ${dayLabel(b.d)}</span></span><span class="chip">1PM ≈ ${Math.round(b.v)}</span></div>`).join('')}</div></div>` : ''}
+    ${top.length ? `<h2>Eng yaxshi natijalar (zal)</h2><div class="panel"><div class="list">${top.map(([id, b]) => `<div class="item" style="cursor:default"><span class="main"><b>${esc(exName(catById.get(id), catById.get(id)?.name) || '—')}</b><span class="muted small">${b.t.w ? `${b.t.w} kg × ${b.t.r}` : `${b.t.r} marta`} · ${dayLabel(b.d)}</span></span><span class="chip">1PM ≈ ${Math.round(b.v)}</span></div>`).join('')}</div></div>` : ''}
     ${waterBest.length ? `<h2>Suvdagi eng tez otrezoklar</h2><div class="panel"><div class="list">${waterBest.slice(0, 5).map(w => `<div class="item" style="cursor:default"><span class="main"><b>${esc(w.n)}</b><span class="muted small">${dayLabel(w.d)}</span></span><span class="chip num">${formatDuration(w.t)}</span></div>`).join('')}</div></div>` : ''}
     <h2>Kunlar</h2>
     <div class="panel">${rows.length ? `<div class="list">${rows.slice(0, 30).map(r => { const fb = S.plan.feedback.find(f => f.logged_on === r.day); return `<div class="item" style="cursor:default"><span class="main"><b>${dayLabel(r.day)}</b><span class="muted small">${r.n} ta mashq${fb ? ` · og'irlik ${fb.rpe}/10` : ''}</span></span><span class="chip num">♥ ${r.hr.length ? Math.round(r.hr.reduce((a, b) => a + b, 0) / r.hr.length) : '—'}</span></div>` }).join('')}</div>` : '<div class="empty">Hali natija kiritilmagan.</div>'}</div>
@@ -207,4 +208,10 @@ export function profileSheet() {
     <div class="fld"><span>Qayiq turi (zarba sanash qoidasi)</span><div class="seg"><button aria-pressed="${!S.settings.boat}" data-act="pfboat" data-b="">Avto</button><button aria-pressed="${S.settings.boat === 'kayak'}" data-act="pfboat" data-b="kayak">Baydarka</button><button aria-pressed="${S.settings.boat === 'canoe'}" data-act="pfboat" data-b="canoe">Kanoe</button></div></div>
     ${installHtml()}
     <button class="btn ghost" data-act="logout">Chiqish</button>`)
+}
+
+// ---------- выбор языка ----------
+export function langSheet() {
+  openSheet(`<div class="between"><h2>Til</h2><button class="link" data-close>✕</button></div>
+    <div class="list">${LANGS.map(([k, n]) => `<button class="item" data-act="setlang" data-l="${k}"><span class="main"><b>${n}</b></span><span class="chip ${getLang() === k ? 'ok' : ''}">${getLang() === k ? '✓' : ''}</span></button>`).join('')}</div>`)
 }

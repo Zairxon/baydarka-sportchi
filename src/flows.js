@@ -1,6 +1,7 @@
 import { unlockAudio, tickBeep, goBeep, stopBeep, keepAwake } from './audio.js'
 import { bpmFrom10, validBeats10, pulseAdvice } from './advice.js'
 import { formatDuration, esc } from './util.js'
+import { tr } from './i18n.js'
 
 // Полноэкранные сценарии со звуком: замер пульса, отсчёт времени, части тренажёра, таймер отдыха в зале.
 // Время считается по часам (Date.now), поэтому «замёрзший» экран не сбивает отсчёт.
@@ -13,7 +14,7 @@ export function closeFlow() {
   keepAwake(false)
 }
 
-const shell = html => `<div class="fl"><div class="fl-in">${html}</div></div>`
+const shell = html => tr(`<div class="fl"><div class="fl-in">${html}</div></div>`)
 const ring = (left, total) => {
   const r = 52, c = 2 * Math.PI * r, f = total > 0 ? Math.min(1, Math.max(0, left / total)) : 0
   return `<svg class="ring" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--soft)" stroke-width="9"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - f)}" transform="rotate(-90 60 60)"/></svg>`
@@ -89,8 +90,8 @@ export function pulseFlow({ age, baseRest, onDone }) {
         inp.value = inp.value.replace(/\D/g, '')
         const ok = validBeats10(inp.value)
         document.getElementById('fl-ok').disabled = !ok
-        document.getElementById('fl-conv').innerHTML = inp.value
-          ? (ok ? `${inp.value} × 6 = <b>${bpmFrom10(inp.value)}</b> <span class="muted small">urish/daq</span>` : `<span class="neg small">10 soniyada 5 dan 40 gacha urish bo'ladi</span>`) : ''
+        document.getElementById('fl-conv').innerHTML = tr(inp.value
+          ? (ok ? `${inp.value} × 6 = <b>${bpmFrom10(inp.value)}</b> <span class="muted small">urish/daq</span>` : `<span class="neg small">10 soniyada 5 dan 40 gacha urish bo'ladi</span>`) : '')
       })
     }
   }
@@ -173,9 +174,9 @@ function restTick() {
   if (left > 0 && left <= 3 && left !== restLast) { restLast = left; tickBeep() }
   if (left === 0 && restLast !== 0) { restLast = 0; goBeep() }
   b.hidden = false
-  b.innerHTML = left > 0
+  b.innerHTML = tr(left > 0
     ? `<span>⏱ Dam: <b class="num">${formatDuration(left)}</b></span><span><button data-rest="-15">−15</button><button data-rest="15">+15</button><button data-rest="stop">✕</button></span>`
-    : '<span><b>Tayyor! Keyingi urinish 💪</b></span><span><button data-rest="stop">✕</button></span>'
+    : '<span><b>Tayyor! Keyingi urinish 💪</b></span><span><button data-rest="stop">✕</button></span>')
 }
 
 export function bindRestBar() {

@@ -6,6 +6,7 @@ import { pulseFlow, timerFlow, restStart } from './flows.js'
 import { fatigueCheck } from './advice.js'
 import { history, suggest, advice, bestRm, epley, MUSCLES, LEVELS } from './gym.js'
 import { toast, openSheet } from './ui.js'
+import { tr, exName, exInfo } from './i18n.js'
 
 // Карточка упражнения в стиле Торсо: название, «i» с техникой, план тренера, подходы с галочкой,
 // затем замер пульса и «Сохранить». Типы ввода:
@@ -128,7 +129,7 @@ export function cardHtml(s, x) {
   }
 
   return `<div class="ex ${saved ? 'done' : ''}" data-ex="${x.sx}">
-    <div class="between"><span class="title">${esc(x.name)}${x.of > 1 ? ` · #${x.set_no}` : ''}<button class="exi" data-act="info" data-sx="${x.sx}" aria-label="Mashq tavsifi">i</button></span>${saved ? '<span class="chip ok">✓ yozildi</span>' : ''}</div>
+    <div class="between"><span class="title">${esc(exName(catById.get(x.ex), x.name))}${x.of > 1 ? ` · #${x.set_no}` : ''}<button class="exi" data-act="info" data-sx="${x.sx}" aria-label="Mashq tavsifi">i</button></span>${saved ? '<span class="chip ok">✓ yozildi</span>' : ''}</div>
     <div class="muted small">${esc(x.muscles || '')}${g?.cat?.level ? ` · ${LEVELS[g.cat.level]?.t}` : ''}${x.rest ? ` · dam ≈ ${formatDuration(x.rest)}` : ''}</div>
     ${pt || x.prescription ? `<div class="plan">Reja: ${esc(pt || x.prescription)}${pt && x.prescription && pt !== x.prescription ? ` <span class="muted small">(${esc(x.prescription)})</span>` : ''}</div>` : ''}
     ${hint}${adv}${rule}${ergo}
@@ -148,7 +149,7 @@ export function onInput(el) {
     const bpm = el.value ? Number(el.value) * 6 : null
     if (f === 'b1') { d.b1 = el.value; d.hr1 = bpm } else { d.b2 = el.value; d.hr2 = bpm }
     const c = document.getElementById(`c${f === 'b1' ? 1 : 2}-${sx}`)
-    if (c) c.innerHTML = bpm ? `${el.value} × 6 = <b>${bpm}</b>` : ''
+    if (c) c.innerHTML = bpm ? tr(`${el.value} × 6 = <b>${bpm}</b>`) : ''
     saveDrafts(); return
   }
   const i = Number(el.dataset.i)
@@ -211,8 +212,8 @@ export function cardAction(act, el, ctx) {
 }
 
 function infoSheet(x) {
-  const i = x.info || {}
-  openSheet(`<div class="between"><b>${esc(x.name)}</b><button class="link" data-close>✕</button></div>
+  const i = exInfo(catById.get(x.ex), x.info) || {}
+  openSheet(`<div class="between"><b>${esc(exName(catById.get(x.ex), x.name))}</b><button class="link" data-close>✕</button></div>
     ${i.muscles ? `<div class="muted small">Ishlaydigan mushaklar: ${esc(i.muscles)}</div>` : ''}
     ${i.steps?.length ? `<ol class="steps">${i.steps.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
     ${i.tip ? `<div class="advice warn"><b>Maslahat:</b> ${esc(i.tip)}</div>` : ''}
