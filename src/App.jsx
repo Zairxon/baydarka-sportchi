@@ -4,6 +4,7 @@ import { addDays, dayLabel, dayShort, formatDuration, isoDate } from './fmt'
 import { fatigueCheck } from './advice'
 import ExerciseCard from './ExerciseCard'
 import Finish from './Finish'
+import Install from './Install'
 
 const store = {
   get(k, d = null) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v) } catch { return d } },
@@ -59,6 +60,7 @@ function Login({ onDone }) {
         {err && <div className="err">{err}</div>}
         <button className="btn" disabled={busy || !l.trim() || !p}>{busy ? 'Tekshirilmoqda…' : 'Kirish'}</button>
       </form>
+      <div className="login"><Install /></div>
     </div>
   )
 }
@@ -142,6 +144,7 @@ function Main({ auth, me, onLogout }) {
         <button className="link" onClick={() => { if (confirm('Chiqishni xohlaysizmi?')) onLogout() }}>Chiqish</button>
       </header>
 
+      <Install />
       {(online === false || pending > 0) && (
         <div className="banner">
           {pending > 0 ? "Yuborilmagan yozuvlar bor. Internet paydo bo'lganda avtomatik yuboriladi." : "Internet yo'q — oxirgi saqlangan reja ko'rsatilmoqda."}

@@ -82,3 +82,4 @@ h1 { margin: 4px 0; font-size: 28px; } h2 { font-size: 18px; margin: 16px 0 8px;
 .mt { margin-top: 12px; }
 .conv { font-size: 22px; margin-top: 4px; color: var(--accent); } .conv b { font-size: 34px; color: var(--text); }
 .rule { background: var(--elev); border-radius: 8px; padding: 6px 10px; margin: 8px 0; font-size: 14px; color: var(--accent); }
+.install { background: var(--card); border: 1px solid var(--accent); border-radius: 14px; padding: 12px; margin: 12px 0; text-align: left; font-size: 14px; } .install .btn { margin-top: 8px; }
