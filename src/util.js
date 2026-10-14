@@ -13,48 +13,36 @@ export function parseDuration(text) {
 }
 
 export function formatDuration(sec) {
-  if (sec == null || sec === '') return ''
+  if (sec == null || sec === '' || Number.isNaN(Number(sec))) return ''
   const t = Number(sec)
   const m = Math.floor(t / 60)
   const s = Math.round((t - m * 60) * 10) / 10
-  return `${m}:${String(s).padStart(2, '0').replace(/^(\d)(\.|$)/, '0$1$2')}`
+  const ss = s < 10 ? '0' + s : String(s)
+  return `${m}:${ss}`
 }
 
 // Пульс обязателен: 30..250 уд/мин.
-export function validPulse(v) {
-  const n = Number(v)
-  return Number.isInteger(n) && n >= 30 && n <= 250
-}
+export const validPulse = v => { const n = Number(v); return Number.isInteger(n) && n >= 30 && n <= 250 }
+
+export const num = v => (v === '' || v == null ? null : Number(String(v).replace(',', '.')))
 
 export const isoDate = (d = new Date()) => {
   const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
   return z.toISOString().slice(0, 10)
 }
-
-export const addDays = (iso, n) => {
-  const d = new Date(iso + 'T12:00:00')
-  d.setDate(d.getDate() + n)
-  return isoDate(d)
-}
+export const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoDate(d) }
 
 const MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr']
 const DAYS = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
-export function dayLabel(iso) {
-  const d = new Date(iso + 'T12:00:00')
-  return `${DAYS[d.getDay()]}, ${d.getDate()}-${MONTHS[d.getMonth()]}`
-}
+export const dayLabel = iso => { const d = new Date(iso + 'T12:00:00'); return `${DAYS[d.getDay()]}, ${d.getDate()}-${MONTHS[d.getMonth()]}` }
 export const dayShort = iso => DAYS[new Date(iso + 'T12:00:00').getDay()].slice(0, 2)
 
-// Подпись поля результата по единице упражнения (как в приложении тренера).
-export function resultKind(unit) {
-  const u = String(unit || '').toLowerCase()
-  return {
-    weight: /kg/.test(u),
-    label: /zarba/.test(u) ? 'Zarba soni'
-      : /\bsm\b/.test(u) ? 'Necha sm'
-      : /km|masofa/.test(u) ? 'Necha km'
-      : /doira/.test(u) ? 'Necha doira'
-      : /takror|marta|kg/.test(u) ? 'Necha marta'
-      : 'Natija',
-  }
+export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+
+export function uuid() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID()
+  const b = crypto.getRandomValues(new Uint8Array(16))
+  b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80
+  const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
 }

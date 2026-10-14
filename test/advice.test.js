@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { maxHr, bpmFrom10, validBeats10, pulseAdvice, fatigueCheck, finishAdvice } from './advice'
+import { maxHr, bpmFrom10, validBeats10, pulseAdvice, fatigueCheck, finishAdvice } from '../src/advice.js'
 
 describe('advice', () => {
   it('макс. пульс по Tanaka', () => { expect(maxHr(15)).toBe(198); expect(maxHr(null)).toBe(197) })

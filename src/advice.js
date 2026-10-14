@@ -50,6 +50,7 @@ export function pulseAdvice({ hr1, hr2, age, baseRest = 90 }) {
       msgs.push('Puls bir daqiqada 12 dan kam tushdi — tiklanish sekin. Bu charchoq belgisi bo\'lishi mumkin: ko\'proq dam oling.')
     }
   }
+  if (extra > 0 && extra === Math.max(0, baseRest - 60) && level === 'ok') msgs.push(`Bu mashq uchun dam me'yori ≈ ${Math.round(baseRest / 60 * 10) / 10} daqiqa: yana ${extra} soniya dam oling.`)
   return { mx, p1, p2, drop, level, extra, msgs }
 }
 
