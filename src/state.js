@@ -39,6 +39,23 @@ export const KINDS = {
 
 export const lastLogFor = sx => S.plan.logs.find(l => l.session_exercise_id === sx)
 
+// Упражнения-близнецы: для байдарки и для каноэ. Тренер ставит любое из пары, а спортсмен видит своё:
+// байдарочнику — «байдарка», каноисту — «каноэ». Запись результата идёт на упражнение, которое задал тренер.
+const PAIRS = { T_land_kayak: ['T_land_canoe', 'kayak'], T_land_canoe: ['T_land_kayak', 'canoe'], M01: ['M02', 'kayak'], M02: ['M01', 'canoe'] }
+const catByCode = new Map(catalog.map(e => [e.code, e]))
+export const myBoat = () => S.me?.boat || S.plan.boat || S.settings.boat || ''
+
+export function adaptExercise(x) {
+  const boat = myBoat()
+  const c = catById.get(x.ex)
+  const pair = c && PAIRS[c.code]
+  if (!boat || !pair) return x
+  const [partnerCode, variantOf] = pair
+  if (variantOf === boat) return x            // это уже вариант под мою лодку
+  const partner = catByCode.get(partnerCode)
+  return partner ? { ...x, dispEx: partner.id, name: partner.name, info: partner.info || x.info } : x
+}
+
 // Упражнения занятия: план тренера + добавленные спортсменом (зал, ОФП) + записи, которых нет в плане.
 export function sessionExercises(s) {
   const base = [...(s.exercises || [])].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
@@ -53,7 +70,7 @@ export function sessionExercises(s) {
     have.add(l.session_exercise_id)
     fromLogs.push(makeExtra(c, l.session_exercise_id, l.set_no))
   }
-  return [...base, ...extra, ...fromLogs]
+  return [...base, ...extra, ...fromLogs].map(adaptExercise)
 }
 
 // Упражнение из каталога в виде элемента плана.

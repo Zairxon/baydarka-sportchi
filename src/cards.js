@@ -23,7 +23,10 @@ export function planText(x, s) {
   if (x.mode === 'timed') return [p.sets > 1 ? `${p.sets} marta` : '', p.time ? `har biri ${t(p.time)}` : ''].filter(Boolean).join(' · ')
   if (x.mode === 'water') return [p.segments ? `${p.segments} otrezok` : '', p.distance ? `${p.distance} m` : ''].filter(Boolean).join(' × ')
   if (x.mode === 'time') return p.time ? (s?.kind === 'game' ? `${Math.round(p.time / 60)} daq` : t(p.time)) : ''
-  if (x.mode === 'phases') return (p.phases || []).map(f => `${f.name} ${t(f.sec)}`).join(' + ')
+  if (x.mode === 'phases') {
+    const total = (p.phases || []).reduce((a, f) => a + f.sec, 0)
+    return (p.phases || []).map(f => `${f.name} ${t(f.sec)}`).join(' + ') + (total ? ` · Jami ${t(total)}` : '')
+  }
   return ''
 }
 
@@ -129,7 +132,7 @@ export function cardHtml(s, x) {
   }
 
   return `<div class="ex ${saved ? 'done' : ''}" data-ex="${x.sx}">
-    <div class="between"><span class="title">${esc(exName(catById.get(x.ex), x.name))}${x.of > 1 ? ` · #${x.set_no}` : ''}<button class="exi" data-act="info" data-sx="${x.sx}" aria-label="Mashq tavsifi">i</button></span>${saved ? '<span class="chip ok">✓ yozildi</span>' : ''}</div>
+    <div class="between"><span class="title">${esc(exName(catById.get(x.dispEx || x.ex), x.name))}${x.of > 1 ? ` · #${x.set_no}` : ''}<button class="exi" data-act="info" data-sx="${x.sx}" aria-label="Mashq tavsifi">i</button></span>${saved ? '<span class="chip ok">✓ yozildi</span>' : ''}</div>
     <div class="muted small">${esc(x.muscles || '')}${g?.cat?.level ? ` · ${LEVELS[g.cat.level]?.t}` : ''}${x.rest ? ` · dam ≈ ${formatDuration(x.rest)}` : ''}</div>
     ${pt || x.prescription ? `<div class="plan">Reja: ${esc(pt || x.prescription)}${pt && x.prescription && pt !== x.prescription ? ` <span class="muted small">(${esc(x.prescription)})</span>` : ''}</div>` : ''}
     ${hint}${adv}${rule}${ergo}
@@ -212,8 +215,8 @@ export function cardAction(act, el, ctx) {
 }
 
 function infoSheet(x) {
-  const i = exInfo(catById.get(x.ex), x.info) || {}
-  openSheet(`<div class="between"><b>${esc(exName(catById.get(x.ex), x.name))}</b><button class="link" data-close>✕</button></div>
+  const i = exInfo(catById.get(x.dispEx || x.ex), x.info) || {}
+  openSheet(`<div class="between"><b>${esc(exName(catById.get(x.dispEx || x.ex), x.name))}</b><button class="link" data-close>✕</button></div>
     ${i.muscles ? `<div class="muted small">Ishlaydigan mushaklar: ${esc(i.muscles)}</div>` : ''}
     ${i.steps?.length ? `<ol class="steps">${i.steps.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
     ${i.tip ? `<div class="advice warn"><b>Maslahat:</b> ${esc(i.tip)}</div>` : ''}

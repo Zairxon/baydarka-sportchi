@@ -1,5 +1,5 @@
 import './style.css'
-import { S, sessionExercises, saveSettings, saveExtras, catById } from './state.js'
+import { S, sessionExercises, saveSettings, saveExtras, myBoat } from './state.js'
 import { store } from './store.js'
 import { apiLogin, sync, queue } from './api.js'
 import { isoDate, addDays, formatDuration, esc } from './util.js'
@@ -8,7 +8,7 @@ import { tr, tt, setLang } from './i18n.js'
 import { mountFooter, draw as drawFooter } from './footer.js'
 import { bindRestBar } from './flows.js'
 import { cardAction, onInput, addExtra } from './cards.js'
-import { langSheet, heroHtml, loginHtml, tabsHtml, todayHtml, deptHtml, sessionHtml, statsHtml, pickerSheet, finishSheet, finishDone, profileSheet, kindOfSession, gymKcal } from './views.js'
+import { boatPickHtml, langSheet, heroHtml, loginHtml, tabsHtml, todayHtml, deptHtml, sessionHtml, statsHtml, pickerSheet, finishSheet, finishDone, profileSheet, kindOfSession, gymKcal } from './views.js'
 
 applyTheme()
 S.starts = store.get('starts', {})
@@ -19,6 +19,7 @@ function render() {
   const y = window.scrollY
   $('hero').innerHTML = tr(heroHtml())
   if (!S.auth || !S.me) { $('app').innerHTML = tr(loginHtml(loginErr, loginBusy)); drawFooter(); return }
+  if (!myBoat()) { $('app').innerHTML = tr(boatPickHtml()); drawFooter(); return }   // сначала лодка
   let body
   if (S.open && S.plan.sessions.some(s => s.id === S.open)) body = sessionHtml()
   else {
@@ -81,6 +82,7 @@ document.addEventListener('click', async e => {
     }
     return
   }
+  if (act === 'setboat') { S.settings.boat = el.dataset.b; saveSettings(); return render() }
   if (act === 'theme') return flipTheme()
   if (act === 'lang') return langSheet()
   if (act === 'setlang') { setLang(el.dataset.l); closeSheet(); return render() }

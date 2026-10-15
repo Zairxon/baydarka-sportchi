@@ -260,3 +260,12 @@ export const PHRASES = [
   ['Til', 'Язык', 'Language'],
   ['Mavzu', 'Тема', 'Theme'],
 ]
+
+// --- добавлено позже ---
+PHRASES.push(
+  ['Qaysi qayiqda eshasiz?', 'В какой лодке вы гребёте?', 'Which boat do you paddle?'],
+  ["Mashqlar va zarbalarni hisoblash qoidasi shunga moslashadi. Keyin Profilda o'zgartirish mumkin.", 'Упражнения и правило счёта гребков подстроятся под это. Потом можно изменить в Профиле.', 'Exercises and the stroke counting rule will adapt to this. You can change it later in Profile.'],
+  ["🛶 Baydarka — chap + o'ng = 1 marta", '🛶 Байдарка — влево + вправо = 1 раз', '🛶 Kayak — left + right = 1 count'],
+  ['🛶 Kanoe — 1 zarba = 1 marta', '🛶 Каноэ — 1 гребок = 1 раз', '🛶 Canoe — 1 stroke = 1 count'],
+  ['Jami', 'Итого', 'Total'],
+)

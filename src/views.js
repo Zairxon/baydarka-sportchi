@@ -46,6 +46,16 @@ export const installHtml = () => {
   return `<div class="panel install"><b>📲 Telefonga o'rnating</b>${S.canInstall ? '<button class="btn" data-act="install">O\'rnatish</button>' : ''}<ol class="steps small">${steps.map(t => `<li>${t}</li>`).join('')}</ol></div>`
 }
 
+// Первый вход: спортсмен отмечает, в какой он лодке. От этого зависят правило счёта гребков и вариант упражнений.
+export function boatPickHtml() {
+  return `<section class="login"><div class="panel">
+    <h2>Qaysi qayiqda eshasiz?</h2>
+    <p class="muted small">Mashqlar va zarbalarni hisoblash qoidasi shunga moslashadi. Keyin Profilda o'zgartirish mumkin.</p>
+    <button class="btn" data-act="setboat" data-b="kayak">🛶 Baydarka — chap + o'ng = 1 marta</button>
+    <button class="btn" data-act="setboat" data-b="canoe">🛶 Kanoe — 1 zarba = 1 marta</button>
+  </div></section>`
+}
+
 export function tabsHtml() {
   const tabs = [['today', '📅', 'Bugun'], ['water', KINDS.water.icon, KINDS.water.short], ['gym', KINDS.gym.icon, KINDS.gym.short], ['land', KINDS.land.icon, KINDS.land.short], ['ofp', KINDS.ofp.icon, KINDS.ofp.short], ['game', KINDS.game.icon, KINDS.game.short], ['stats', '📊', 'Natijalar']]
   return `<div class="tabs"><div class="tabs-in">${tabs.map(([k, i, n]) => `<button class="tab" aria-selected="${S.tab === k}" data-act="tab" data-tab="${k}"><i>${i}</i>${n}</button>`).join('')}</div></div>`
