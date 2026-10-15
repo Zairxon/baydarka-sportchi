@@ -56,11 +56,6 @@ export function boatPickHtml() {
   </div></section>`
 }
 
-export function tabsHtml() {
-  const tabs = [['today', '📅', 'Bugun'], ['water', KINDS.water.icon, KINDS.water.short], ['gym', KINDS.gym.icon, KINDS.gym.short], ['land', KINDS.land.icon, KINDS.land.short], ['ofp', KINDS.ofp.icon, KINDS.ofp.short], ['game', KINDS.game.icon, KINDS.game.short], ['stats', '📊', 'Natijalar']]
-  return `<div class="tabs"><div class="tabs-in">${tabs.map(([k, i, n]) => `<button class="tab" aria-selected="${S.tab === k}" data-act="tab" data-tab="${k}"><i>${i}</i>${n}</button>`).join('')}</div></div>`
-}
-
 // ---------- строки списка занятий ----------
 const SLOT = { morning: 'Ertalabki', evening: 'Kechki' }
 function sessionItem(s0) {
@@ -89,22 +84,8 @@ export function todayHtml() {
     <div class="mnav"><button class="sq" data-act="day" data-d="-1">‹</button><b>${dayLabel(day)}${day === today ? ' · bugun' : ''}</b><button class="sq" data-act="day" data-d="1">›</button></div>
     <div class="panel">${list.length ? `<div class="list">${list.map(sessionItem).join('')}</div>` : "<div class=\"empty\">Bu kunga mashg'ulot rejalashtirilmagan.</div>"}</div>
     ${next.length ? `<h2>Keyingi mashg'ulotlar</h2><div class="panel"><div class="list">${next.map(s => `<div class="dayhead">${dayLabel(s.session_date)}</div>${sessionItem(s)}`).join('')}</div></div>` : ''}
-    <h2>Bo'limlar</h2>
-    <div class="panel"><div class="list">${Object.entries(KINDS).map(([k, v]) => `<button class="item" data-act="tab" data-tab="${k}"><span class="ic">${v.icon}</span><span class="main"><b>${v.name}</b><span class="muted small">${v.text}</span></span><span class="muted">›</span></button>`).join('')}</div></div>
+    <button class="btn" data-act="tab" data-tab="stats">📊 Natijalar</button>
   </section>`
-}
-
-// ---------- отдел ----------
-export function deptHtml(kind) {
-  const k = KINDS[kind]
-  const today = isoDate()
-  const all = S.plan.sessions.map(withKind).filter(s => s.kind === kind)
-  const upcoming = all.filter(s => s.session_date >= today)
-  const past = all.filter(s => s.session_date < today).sort((a, b) => b.session_date.localeCompare(a.session_date))
-  const group = list => { let d = ''; return list.map(s => { const h = s.session_date !== d ? `<div class="dayhead">${dayLabel(s.session_date)}</div>` : ''; d = s.session_date; return h + sessionItem(s) }).join('') }
-  return `<section><div class="panel"><div class="between"><h1>${k.icon} ${k.name}</h1></div><p class="muted small">${k.text}</p></div>
-    <h2>Reja</h2><div class="panel">${upcoming.length ? `<div class="list">${group(upcoming)}</div>` : '<div class="empty">Rejalashtirilgan mashg\'ulot yo\'q.</div>'}</div>
-    ${past.length ? `<h2>Oldingi mashg'ulotlar</h2><div class="panel"><div class="list">${group(past.slice(0, 20))}</div></div>` : ''}</section>`
 }
 
 // ---------- занятие ----------
@@ -200,6 +181,7 @@ export function statsHtml() {
   for (const l of logs) { const c = catById.get(l.exercise_id); if (c?.mode === 'water') for (const t of l.detail?.sets || []) if (t.t) waterBest.push({ n: exName(c, c.name), t: t.t, d: l.logged_on }) }
   waterBest.sort((a, b) => a.t - b.t)
   return `<section>
+    <div class="between"><button class="link" data-act="tab" data-tab="today">← Orqaga</button></div>
     <div class="kpis"><div class="kpi"><span>Mashg'ulot kuni</span><b>${rows.length}</b></div><div class="kpi"><span>Yozilgan mashq</span><b>${logs.length}</b></div><div class="kpi"><span>O'rtacha puls</span><b>${avg ?? '—'}</b></div></div>
     <h2>Mushaklar yuklamasi (7 kun)</h2>
     <div class="panel">${Object.keys(load).length ? Object.entries(load).sort((a, b) => b[1] - a[1]).map(([g, n]) => `<div class="barrow"><span>${MUSCLES[g] || g}</span><div><div class="bar" style="width:${Math.round((n / maxLoad) * 100)}%"></div></div><span class="num">${n}</span></div>`).join('') + '<div class="note">Raqam — oxirgi 7 kundagi urinishlar soni.</div>' : '<div class="empty">Hali zal natijalari yo\'q.</div>'}</div>

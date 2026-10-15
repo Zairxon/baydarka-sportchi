@@ -8,7 +8,7 @@ import { tr, tt, setLang } from './i18n.js'
 import { mountFooter, draw as drawFooter } from './footer.js'
 import { bindRestBar } from './flows.js'
 import { cardAction, onInput, addExtra } from './cards.js'
-import { boatPickHtml, langSheet, heroHtml, loginHtml, tabsHtml, todayHtml, deptHtml, sessionHtml, statsHtml, pickerSheet, finishSheet, finishDone, profileSheet, kindOfSession, gymKcal } from './views.js'
+import { boatPickHtml, langSheet, heroHtml, loginHtml, todayHtml, sessionHtml, statsHtml, pickerSheet, finishSheet, finishDone, profileSheet, kindOfSession, gymKcal } from './views.js'
 
 applyTheme()
 S.starts = store.get('starts', {})
@@ -24,7 +24,7 @@ function render() {
   if (S.open && S.plan.sessions.some(s => s.id === S.open)) body = sessionHtml()
   else {
     S.open = null
-    body = tabsHtml() + (S.tab === 'today' ? todayHtml() : S.tab === 'stats' ? statsHtml() : deptHtml(S.tab))
+    body = S.tab === 'stats' ? statsHtml() : todayHtml()
   }
   $('app').innerHTML = tr(body)
   drawFooter()
