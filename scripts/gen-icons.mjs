@@ -13,7 +13,7 @@ const LIGHT = [232, 246, 240]   // светлая мята
 
 // Яркость → цвет между DARK и LIGHT. Бледный водяной знак исходника уходит в фон.
 async function duotone(file, size) {
-  const { data, info } = await sharp(file).resize(size, size, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true })
+  const { data, info } = await sharp(file).extract({ left: 24, top: 64, width: 960, height: 960 }).resize(size, size, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true })
   const out = Buffer.alloc(info.width * info.height * 3)
   for (let i = 0; i < info.width * info.height; i++) {
     const lum = (data[i * 3] * 0.3 + data[i * 3 + 1] * 0.59 + data[i * 3 + 2] * 0.11) / 255
@@ -28,7 +28,7 @@ const pub = join(root, 'public')
 const bg = { r: LIGHT[0], g: LIGHT[1], b: LIGHT[2], alpha: 1 }
 
 // Обычная иконка: эмблема с небольшим полем.
-async function plain(size, name, pad = 0.06) {
+async function plain(size, name, pad = 0.01) {
   const inner = Math.round(size * (1 - pad * 2))
   const art = await (await duotone(src, inner)).png().toBuffer()
   await sharp({ create: { width: size, height: size, channels: 4, background: bg } })
@@ -40,4 +40,4 @@ await plain(32, 'favicon-32x32.png', 0.02)
 await plain(180, 'apple-touch-icon.png')
 await plain(192, 'pwa-192x192.png')
 await plain(512, 'pwa-512x512.png')
-await plain(512, 'maskable-icon-512x512.png', 0.17)   // «безопасная зона» маски Android — эмблема в центре 66 %
+await plain(512, 'maskable-icon-512x512.png', 0.1)   // «безопасная зона» маски Android — эмблема в центре 66 %
