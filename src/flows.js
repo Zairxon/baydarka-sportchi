@@ -121,33 +121,36 @@ export function timerFlow({ title, parts: all, onDone }) {
   closeFlow()
   const parts = all.filter(p => p.sec > 0)
   if (!parts.length) return
-  let i = -1, until = 0, now = Date.now(), last = -1, finished = false, lastOp = 0
-  // Голос: после 3-2-1 «Внимание, марш», на темпе «Оп» каждые 2 секунды, на финише «Темп», в конце «Стоп».
+  let i = -1, until = 0, now = Date.now(), last = -1, finished = false, said = -1
+  // Голос: «Внимание, марш» до отсчёта 3-2-1; за секунду до смены части — «Оп» перед темпом и «Темп» перед финишем;
+  // в самом конце — «Стоп».
   const isFinish = k => /finish|final/i.test(parts[k]?.name || '')
   const isStart = k => /start/i.test(parts[k]?.name || '')
-  const enter = k => { lastOp = Date.now(); if (k === 0) say('Внимание! Марш!'); else if (isFinish(k)) say('Темп!'); else if (!isStart(k)) say('Оп!') }
+  const announce = k => { if (isFinish(k)) say('Темп!'); else if (!isStart(k)) say('Оп!') }
   const sec = () => Math.ceil(Math.max(0, until - now) / 1000)
 
   function step() {
     now = Date.now()
     const s = sec()
-    if ((i === -1 || s <= 3) && s > 0 && s !== last && !finished) { last = s; tickBeep() }
+    if (((i === -1) || (i >= 0 && s <= 3)) && s > 0 && s !== last && !finished) { last = s; tickBeep() }
     if (until - now > 0) {
-      if (i >= 0 && !isStart(i) && Date.now() - lastOp >= 2000 && sec() > 1) { lastOp = Date.now(); say('Оп!') }
+      if (i >= 0 && parts.length > 1 && i + 1 < parts.length && until - now <= 1000 && said !== i + 1) { said = i + 1; announce(i + 1) }
       return paintTime()
     }
     last = -1
-    if (i === -1) { goBeep(); i = 0; until = Date.now() + parts[0].sec * 1000; enter(0) }
-    else if (i + 1 < parts.length) { goBeep(); i++; until = Date.now() + parts[i].sec * 1000; enter(i) }
+    if (i === -3) { i = -1; until = Date.now() + 3000 }
+    else if (i === -1) { goBeep(); i = 0; until = Date.now() + parts[0].sec * 1000 }
+    else if (i + 1 < parts.length) { goBeep(); i++; until = Date.now() + parts[i].sec * 1000 }
     else { stopBeep(); say('Стоп!'); finished = true; clearInterval(timer); keepAwake(false) }
     now = Date.now(); paint()
   }
-  const paintTime = () => { const el = document.getElementById('fl-time'); if (el) el.textContent = i === -1 ? String(Math.max(sec(), 1)) : formatDuration(sec()) }
+  const paintTime = () => { if (i === -3) return; const el = document.getElementById('fl-time'); if (el) el.textContent = i === -1 ? String(Math.max(sec(), 1)) : formatDuration(sec()) }
 
   function paint() {
     let body
     if (finished) body = `<div class="go">Tugadi! 🎉</div><p>Endi natijani (zarba sonini) yozing.</p><button class="btn" data-fl="done">Davom etish</button>`
     else if (i === -2) body = `<h2>${esc(title)}</h2><p class="muted">${parts.map(p => `${esc(p.name)} ${formatDuration(p.sec)}`).join(' + ')}</p><button class="btn" data-fl="start">▶ Boshlash (3-2-1)</button>`
+    else if (i === -3) body = `<p class="muted">Tayyorlaning</p><div class="bignum" id="fl-time">🔊</div>`
     else if (i === -1) body = `<p class="muted">Tayyorlaning</p><div class="bignum" id="fl-time">${Math.max(sec(), 1)}</div>`
     else body = `<div class="go">${esc(parts[i].name)}</div><div class="bignum" id="fl-time">${formatDuration(sec())}</div><p class="muted small">${parts[i + 1] ? `Keyingi: ${esc(parts[i + 1].name)} ${formatDuration(parts[i + 1].sec)}` : 'Oxirgi qism'}</p>`
     host().innerHTML = shell(`${finished ? '' : '<button class="fl-x" data-fl="cancel" aria-label="Yopish">✕</button>'}${body}`)
@@ -156,7 +159,7 @@ export function timerFlow({ title, parts: all, onDone }) {
   i = -2
   host().onclick = e => {
     const b = e.target.closest('[data-fl]'); if (!b) return
-    if (b.dataset.fl === 'start') { unlockAudio(); keepAwake(true); i = -1; until = Date.now() + 3000; last = -1; clearInterval(timer); timer = setInterval(step, 150); paint() }
+    if (b.dataset.fl === 'start') { unlockAudio(); keepAwake(true); i = -3; until = Date.now() + 2600; last = -1; said = -1; say('Внимание! Марш!'); clearInterval(timer); timer = setInterval(step, 150); paint() }
     else if (b.dataset.fl === 'cancel') closeFlow()
     else if (b.dataset.fl === 'done') { closeFlow(); onDone?.() }
   }

@@ -127,13 +127,13 @@ export function gymKcal(s, exs) {
 // ---------- каталог упражнений (зал, ОФП) ----------
 export function pickerSheet(kind) {
   const q = S.pickQ.trim().toLowerCase()
-  const pool = CAT.filter(c => c.kinds?.includes(kind))
+  const pool = CAT.filter(c => c.kinds?.includes(kind) || (kind === 'gym' && c.group === 'warm'))
   const groups = [...new Set(pool.map(c => c.group))]
   const list = pool.filter(c => (!S.pickG || c.group === S.pickG) && (!q || c.name.toLowerCase().includes(q)))
   openSheet(`<div class="between"><h2>Mashq qo'shish</h2><button class="link" data-close>✕</button></div>
     <input id="pk-q" placeholder="Qidirish…" value="${esc(S.pickQ)}">
     <div class="chips"><button class="pill" aria-pressed="${!S.pickG}" data-act="pkg" data-g="">Hammasi</button>${groups.map(g => `<button class="pill" aria-pressed="${S.pickG === g}" data-act="pkg" data-g="${g}">${MUSCLES[g] || g}</button>`).join('')}</div>
-    <div class="list">${list.slice(0, 60).map(c => `<button class="item" data-act="pickadd" data-id="${c.id}"><span class="main"><b>${esc(exName(c, c.name))}</b><span class="muted small">${MUSCLES[c.group] || c.cat}${c.level ? ' · ' + LEVELS[c.level].t : ''}</span></span><span class="chip">＋</span></button>`).join('') || '<div class="empty">Topilmadi</div>'}</div>`)
+    <div class="list">${list.map(c => `<button class="item" data-act="pickadd" data-id="${c.id}"><span class="main"><b>${esc(exName(c, c.name))}</b><span class="muted small">${MUSCLES[c.group] || c.cat}${c.level ? ' · ' + LEVELS[c.level].t : ''}</span></span><span class="chip">＋</span></button>`).join('') || '<div class="empty">Topilmadi</div>'}</div>`)
   const inp = document.getElementById('pk-q'); if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length) }
 }
 
