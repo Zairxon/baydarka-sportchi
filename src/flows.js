@@ -1,4 +1,4 @@
-import { unlockAudio, tickBeep, goBeep, stopBeep, keepAwake } from './audio.js'
+import { unlockAudio, tickBeep, goBeep, stopBeep, keepAwake, say } from './audio.js'
 import { bpmFrom10, validBeats10, pulseAdvice } from './advice.js'
 import { formatDuration, esc } from './util.js'
 import { tr } from './i18n.js'
@@ -121,18 +121,25 @@ export function timerFlow({ title, parts: all, onDone }) {
   closeFlow()
   const parts = all.filter(p => p.sec > 0)
   if (!parts.length) return
-  let i = -1, until = 0, now = Date.now(), last = -1, finished = false
+  let i = -1, until = 0, now = Date.now(), last = -1, finished = false, lastOp = 0
+  // Голос: после 3-2-1 «Внимание, марш», на темпе «Оп» каждые 2 секунды, на финише «Темп», в конце «Стоп».
+  const isFinish = k => /finish|final/i.test(parts[k]?.name || '')
+  const isStart = k => /start/i.test(parts[k]?.name || '')
+  const enter = k => { lastOp = Date.now(); if (k === 0) say('Внимание! Марш!'); else if (isFinish(k)) say('Темп!'); else if (!isStart(k)) say('Оп!') }
   const sec = () => Math.ceil(Math.max(0, until - now) / 1000)
 
   function step() {
     now = Date.now()
     const s = sec()
     if ((i === -1 || s <= 3) && s > 0 && s !== last && !finished) { last = s; tickBeep() }
-    if (until - now > 0) return paintTime()
+    if (until - now > 0) {
+      if (i >= 0 && !isStart(i) && Date.now() - lastOp >= 2000 && sec() > 1) { lastOp = Date.now(); say('Оп!') }
+      return paintTime()
+    }
     last = -1
-    if (i === -1) { goBeep(); i = 0; until = Date.now() + parts[0].sec * 1000 }
-    else if (i + 1 < parts.length) { goBeep(); i++; until = Date.now() + parts[i].sec * 1000 }
-    else { stopBeep(); finished = true; clearInterval(timer); keepAwake(false) }
+    if (i === -1) { goBeep(); i = 0; until = Date.now() + parts[0].sec * 1000; enter(0) }
+    else if (i + 1 < parts.length) { goBeep(); i++; until = Date.now() + parts[i].sec * 1000; enter(i) }
+    else { stopBeep(); say('Стоп!'); finished = true; clearInterval(timer); keepAwake(false) }
     now = Date.now(); paint()
   }
   const paintTime = () => { const el = document.getElementById('fl-time'); if (el) el.textContent = i === -1 ? String(Math.max(sec(), 1)) : formatDuration(sec()) }

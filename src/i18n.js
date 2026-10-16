@@ -1,4 +1,5 @@
 import { PHRASES } from './dict.js'
+import { extraInfo } from './extraInfo.js'
 
 // Языки: узбекский кириллицей (uz) и латиницей (uzl — исходный), русский, английский.
 // Ключ языка общий с приложениями «Митти юрак» (uzi-lang).
@@ -101,6 +102,8 @@ export function exName(c, fallback) {
   return fallback
 }
 export function exInfo(c, fallback) {
+  const full = extraInfo(c?.code, lang)
+  if (full) return full
   if (lang === 'ru') return c?.ru?.info || fallback
   if (lang === 'en') return c?.en?.info || c?.ru?.info || fallback
   return fallback

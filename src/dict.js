@@ -111,6 +111,7 @@ export const PHRASES = [
   ['Mashq tavsifi', 'Описание упражнения', 'Exercise description'],
   ['Ishlaydigan mushaklar:', 'Работающие мышцы:', 'Working muscles:'],
   ['Maslahat:', 'Совет:', 'Tip:'],
+  ['Qanday bajariladi:', 'Как выполнять:', 'How to do it:'], ['Nafas:', 'Дыхание:', 'Breathing:'], ['Xatolar:', 'Частые ошибки:', 'Common mistakes:'],
   ["Tavsif yo'q.", 'Описания нет.', 'No description.'],
   ['Kamida bitta urinishni ✓ bilan belgilang.', 'Отметьте хотя бы один подход галочкой ✓.', 'Mark at least one set with ✓.'],
   ["Puls majburiy: avval pulsni o'lchang.", 'Пульс обязателен: сначала измерьте пульс.', 'Pulse is required: measure your pulse first.'],

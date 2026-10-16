@@ -61,7 +61,7 @@ export function ensureDraft(s, x) {
     const log = lastLogFor(x.sx)
     const sug = gymInfo(s, x)?.sug
     d = S.drafts[x.sx] = { id: log?.id || uuid(), sets: initialSets(x, log, sug) }
-    if (log?.heart_rate) { d.hr1 = log.heart_rate; d.hr2 = log.recovery_hr; d.locked = true }
+    if (log) { d.hr1 = log.heart_rate ?? null; d.hr2 = log.recovery_hr ?? null; d.locked = true }
     saveDrafts()
   }
   return d
@@ -79,13 +79,23 @@ function gymInfo(s, x) {
   return { hist, sug, adv: advice(hist, days, lo, hi, comp), cat, lo, hi }
 }
 
+// Пульс меряют только после бега, гребли и ритмичных повторяющихся упражнений (имитация, кросс, вода).
+// После силовых, растяжки, планки и разминки он ничего не говорит.
+const PULSE_NAME = /yugur|kross|eshkak|eshish|imitatsiya|velosiped|suzish|sakrash|doiraviy|arqon|ergometr/i
+export function needsPulse(x) {
+  if (x.mode === 'water' || x.mode === 'phases' || x.mode === 'timed') return true
+  if (x.mode === 'weight' || x.mode === 'reps') return false
+  return PULSE_NAME.test(x.name || '') || /^M(32|33|34|35)$/.test(x.code || '')
+}
+
 export function cardHtml(s, x) {
   const d = ensureDraft(s, x)
   const log = lastLogFor(x.sx)
   const sets = d.sets
   const g = gymInfo(s, x)
   const hr = d.hr1 != null ? { hr1: d.hr1, hr2: d.hr2 } : null
-  const saved = !!log?.heart_rate
+  const saved = !!log
+  const needHr = needsPulse(x)
   const anyDone = sets.some(t => t.done)
   const boat = S.me?.boat || S.plan.boat || S.settings.boat
   const strokeWord = x.count === 'stroke' ? 'Zarba' : 'Marta'
@@ -122,7 +132,8 @@ export function cardHtml(s, x) {
   const addSet = x.mode === 'weight' || x.mode === 'reps' ? `<button class="add" data-act="addset" data-sx="${x.sx}">＋ Urinish</button>` : ''
 
   let pulse = ''
-  if (hr) {
+  if (!needHr) pulse = ''
+  else if (hr) {
     pulse = `<div class="hrdone">♥ Puls: <b>${hr.hr1}</b>${hr.hr2 != null ? ` → 1 daq: <b>${hr.hr2}</b> (−${hr.hr1 - hr.hr2})` : ''}${d.locked ? '' : ' <button class="link" data-act="repulse" data-sx="' + x.sx + '">qayta o\'lchash</button>'}</div>`
   } else if (anyDone && d.manual) {
     pulse = `<div class="row"><label class="fld" style="flex:1"><span>Puls * (10 soniyadagi urishlar)</span><input class="n" inputmode="numeric" data-in="b1" data-sx="${x.sx}" value="${esc(d.b1 ?? '')}"><span class="conv" id="c1-${x.sx}"></span></label>
@@ -139,7 +150,7 @@ export function cardHtml(s, x) {
     <div class="setrow head"><span></span><span>${head[0]}</span><span>${head[1]}</span><span></span></div>
     ${rows}${water}${addSet}${pulse}
     <div class="err neg small" id="err-${x.sx}"></div>
-    <button class="btn" data-act="save" data-sx="${x.sx}" ${!anyDone || !hr ? 'disabled' : ''}>${saved ? 'Yangilash' : 'Saqlash'}</button>
+    <button class="btn" data-act="save" data-sx="${x.sx}" ${!anyDone || (needHr && !hr) ? 'disabled' : ''}>${saved ? 'Yangilash' : 'Saqlash'}</button>
   </div>`
 }
 
@@ -217,8 +228,10 @@ export function cardAction(act, el, ctx) {
 function infoSheet(x) {
   const i = exInfo(catById.get(x.dispEx || x.ex), x.info) || {}
   openSheet(`<div class="between"><b>${esc(exName(catById.get(x.dispEx || x.ex), x.name))}</b><button class="link" data-close>✕</button></div>
-    ${i.muscles ? `<div class="muted small">Ishlaydigan mushaklar: ${esc(i.muscles)}</div>` : ''}
-    ${i.steps?.length ? `<ol class="steps">${i.steps.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
+    ${i.muscles ? `<div class="small"><b>Ishlaydigan mushaklar:</b> ${esc(i.muscles)}</div>` : ''}
+    ${i.steps?.length ? `<div class="small" style="margin-top:8px"><b>Qanday bajariladi:</b></div><ol class="steps">${i.steps.map(t => `<li>${esc(t)}</li>`).join('')}</ol>` : ''}
+    ${i.breath ? `<div class="small"><b>Nafas:</b> ${esc(i.breath)}</div>` : ''}
+    ${i.mistakes ? `<div class="advice bad" style="margin-top:8px"><b>Xatolar:</b> ${esc(i.mistakes)}</div>` : ''}
     ${i.tip ? `<div class="advice warn"><b>Maslahat:</b> ${esc(i.tip)}</div>` : ''}
     ${!i.steps?.length && !i.tip && !i.muscles ? '<div class="muted">Tavsif yo\'q.</div>' : ''}`)
 }
@@ -256,7 +269,7 @@ export function buildRow(s, x, d) {
   return {
     id: d.id, session_id: s.id, session_exercise_id: x.sx, exercise_id: x.ex, set_no: x.set_no ?? 1, logged_on: s.session_date,
     reps, weight_kg: weight, duration_seconds: duration, distance_m: distance,
-    heart_rate: Math.round(d.hr1), recovery_hr: d.hr2 == null ? null : Math.round(d.hr2),
+    heart_rate: d.hr1 == null ? null : Math.round(d.hr1), recovery_hr: d.hr2 == null ? null : Math.round(d.hr2),
     note: d.note || null, detail: { sets: detail, ...(x.mode === 'phases' ? { water: d.water ?? null } : {}) },
   }
 }
@@ -264,7 +277,7 @@ export function buildRow(s, x, d) {
 function save(s, x, d, err) {
   err('')
   if (!d.sets.some(t => t.done)) return err('Kamida bitta urinishni ✓ bilan belgilang.')
-  if (!validPulse(d.hr1)) return err("Puls majburiy: avval pulsni o'lchang.")
+  if (needsPulse(x) && !validPulse(d.hr1)) return err("Puls majburiy: avval pulsni o'lchang.")
   const row = buildRow(s, x, d)
   // Рекорд (зал): расчётный максимум выше прошлых занятий.
   if (s.kind === 'gym' && x.mode === 'weight') {

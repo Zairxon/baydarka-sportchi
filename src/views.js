@@ -61,7 +61,7 @@ const SLOT = { morning: 'Ertalabki', evening: 'Kechki' }
 function sessionItem(s0) {
   const s = withKind(s0)
   const exs = sessionExercises(s)
-  const done = exs.filter(x => S.plan.logs.some(l => l.session_exercise_id === x.sx && l.heart_rate)).length
+  const done = exs.filter(x => S.plan.logs.some(l => l.session_exercise_id === x.sx)).length
   const fin = S.plan.feedback.some(f => f.session_id === s.id)
   const k = KINDS[s.kind]
   return `<button class="item" data-act="open" data-id="${s.id}"><span class="ic">${k.icon}</span><span class="main"><b>${esc(s.topic || k.name)}</b>
@@ -94,7 +94,7 @@ export function sessionHtml() {
   const exs = sessionExercises(s)
   const k = KINDS[s.kind]
   const fb = S.plan.feedback.find(f => f.session_id === s.id)
-  const done = exs.filter(x => S.plan.logs.some(l => l.session_exercise_id === x.sx && l.heart_rate)).length
+  const done = exs.filter(x => S.plan.logs.some(l => l.session_exercise_id === x.sx)).length
   const start = S.starts?.[s.id]
   const kcal = s.kind === 'gym' && Number(S.settings.weight) > 0 ? gymKcal(s, exs) : null
   return `<section>

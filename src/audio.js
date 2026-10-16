@@ -31,6 +31,21 @@ export const tickBeep = () => beep(880, 120)      // 3, 2, 1
 export const goBeep = () => beep(1320, 450)       // старт отсчёта пульса
 export const stopBeep = () => { beep(660, 180); setTimeout(() => beep(660, 180), 240); setTimeout(() => beep(990, 350), 480) } // конец 10 секунд
 
+// Голосовые команды тренера. Всегда по-русски («Внимание», «Марш», «Оп», «Темп», «Стоп»),
+// на максимальной громкости; предыдущая фраза обрывается, чтобы команды не копились в очереди.
+export function say(text) {
+  try {
+    const ss = window.speechSynthesis
+    if (!ss) return
+    ss.cancel()
+    const u = new SpeechSynthesisUtterance(text)
+    u.lang = 'ru-RU'; u.volume = 1; u.rate = 1.1; u.pitch = 1
+    const v = ss.getVoices().find(x => /^ru/i.test(x.lang))
+    if (v) u.voice = v
+    ss.speak(u)
+  } catch { /* без голоса остаются сигналы */ }
+}
+
 // Не даёт экрану гаснуть во время замера (не везде поддерживается).
 let lock = null
 export async function keepAwake(on) {
