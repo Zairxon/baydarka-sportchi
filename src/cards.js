@@ -33,7 +33,7 @@ export function planText(x, s) {
 const emptySet = (x, i, sug) => {
   const p = x.plan || {}
   if (x.mode === 'weight') return { w: sug?.w !== '' && sug?.w != null ? String(sug.w) : (p.weight != null ? String(p.weight) : ''), r: '', done: false }
-  if (x.mode === 'timed') return { r: '', t: p.time || 0, done: false }
+  if (x.mode === 'timed') return { r: '', t: p.time || 60, done: false }
   if (x.mode === 'water' || x.mode === 'time') return { t: '', done: false, n: i + 1 }
   return { r: '', done: false }
 }

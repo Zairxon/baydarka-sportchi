@@ -117,8 +117,10 @@ export function pulseFlow({ age, baseRest, onDone }) {
 
 // ---------- отсчёт заданного тренером времени (имитация, часть тренажёра) ----------
 // parts: [{ name, sec }]. 3-2-1, затем каждая часть; звук на границах, последние 3 секунды — отсчёт.
-export function timerFlow({ title, parts, onDone }) {
+export function timerFlow({ title, parts: all, onDone }) {
   closeFlow()
+  const parts = all.filter(p => p.sec > 0)
+  if (!parts.length) return
   let i = -1, until = 0, now = Date.now(), last = -1, finished = false
   const sec = () => Math.ceil(Math.max(0, until - now) / 1000)
 
