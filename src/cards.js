@@ -100,7 +100,7 @@ export function cardHtml(s, x) {
   const boat = S.me?.boat || S.plan.boat || S.settings.boat
   const strokeWord = x.count === 'stroke' ? 'Zarba' : 'Marta'
   const head = x.mode === 'phases' ? ['Qism', `${strokeWord} soni`] : x.mode === 'weight' ? ['Kg', 'Marta'] : x.mode === 'timed' ? [strokeWord, 'Vaqt']
-    : x.mode === 'water' ? ['Otrezok', 'Vaqt (m:ss)'] : x.mode === 'time' ? ['', isMinutes(s, x) ? 'Daqiqa' : 'Vaqt (m:ss)'] : ['', strokeWord === 'Zarba' ? 'Zarba' : 'Marta']
+    : x.mode === 'water' ? [x.plan?.distance ? 'Otrezok' : '', 'Vaqt (m:ss)'] : x.mode === 'time' ? ['', isMinutes(s, x) ? 'Daqiqa' : 'Vaqt (m:ss)'] : ['', strokeWord === 'Zarba' ? 'Zarba' : 'Marta']
   const pt = planText(x, s)
 
   let rows = ''
