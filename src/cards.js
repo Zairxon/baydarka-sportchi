@@ -114,7 +114,11 @@ export function cardHtml(s, x) {
     else if (x.mode === 'phases') cells = `<span class="muted small center">${esc(t.name)} · ${formatDuration(t.sec)}</span>` + inp('r', 'zarba', 'numeric')
     else if (isMinutes(s, x)) cells = '<span></span>' + `<input class="n" inputmode="numeric" data-in="t" data-sx="${x.sx}" data-i="${i}" placeholder="${x.plan?.time ? Math.round(x.plan.time / 60) : 'daq'}" value="${esc(t.t ?? '')}">`
     else cells = `<span class="muted small center">${x.mode === 'water' && x.plan?.distance ? x.plan.distance + ' m' : ''}</span>` + inp('t', x.plan?.time ? formatDuration(x.plan.time) : '2:35', 'text')
-    rows += `<div class="setrow ${t.done ? 'done' : ''}"><span class="sn">${i + 1}</span>${cells}${tick}</div>`
+    const EMPTY = ['<span></span>', '<span class="muted small center"></span>']
+    const empty = EMPTY.find(e => cells.startsWith(e))
+    const lone = !!empty   // нет первой колонки (вес/подход без значения) — поле занимает её место
+    if (lone) cells = cells.slice(empty.length)
+    rows += `<div class="setrow ${lone ? 'one' : ''} ${t.done ? 'done' : ''}"><span class="sn">${i + 1}</span>${cells}${tick}</div>`
   })
 
   const hint = g ? (g.sug.prev
@@ -147,7 +151,7 @@ export function cardHtml(s, x) {
     <div class="muted small">${esc(x.muscles || '')}${g?.cat?.level ? ` · ${LEVELS[g.cat.level]?.t}` : ''}${x.rest ? ` · dam ≈ ${formatDuration(x.rest)}` : ''}</div>
     ${pt || x.prescription ? `<div class="plan">Reja: ${esc(pt || x.prescription)}${pt && x.prescription && pt !== x.prescription ? ` <span class="muted small">(${esc(x.prescription)})</span>` : ''}</div>` : ''}
     ${hint}${adv}${rule}${ergo}
-    <div class="setrow head"><span></span><span>${head[0]}</span><span>${head[1]}</span><span></span></div>
+    <div class="setrow head ${head[0] === '' ? 'one' : ''}"><span></span>${head[0] === '' ? '' : `<span>${head[0]}</span>`}<span>${head[1]}</span><span></span></div>
     ${rows}${water}${addSet}${pulse}
     <div class="err neg small" id="err-${x.sx}"></div>
     <button class="btn" data-act="save" data-sx="${x.sx}" ${!anyDone || (needHr && !hr) ? 'disabled' : ''}>${saved ? 'Yangilash' : 'Saqlash'}</button>
