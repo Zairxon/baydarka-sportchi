@@ -84,7 +84,7 @@ export const PHRASES = [
   ['Maqsad: # kg × #', 'Цель: # кг × #', 'Goal: # kg × #'],
   ["Vazn qo'shish vaqti: maqsad # kg × #+", 'Пора прибавить вес: цель # кг × #+', 'Time to add weight: goal # kg × #+'],
   ["💡 # ta mashg'ulotingiz bo'yicha", '💡 По вашим # тренировкам:', '💡 Based on your # sessions:'],
-  ["bilan boshlang va #–# marta bajaring (1–2 takror zaxirada qoldiring). Hisobiy maksimum — # kg. Hamma urinishda # chiqsa — # kg qo'shing.", 'начните и делайте #–# повторов (оставляйте 1–2 в запасе). Расчётный максимум — # кг. Когда во всех подходах выйдет # — прибавьте # кг.', 'start with it and do #–# reps (leave 1–2 in reserve). Estimated max — # kg. When every set reaches # — add # kg.'],
+  ["bilan boshlang va #–# marta bajaring (#–# takror zaxirada qoldiring). Hisobiy maksimum — # kg. Hamma urinishda # chiqsa — # kg qo'shing.", 'начните и делайте #–# повторов (оставляйте #–# в запасе). Расчётный максимум — # кг. Когда во всех подходах выйдет # — прибавьте # кг.', 'start with it and do #–# reps (leave #–# in reserve). Estimated max — # kg. When every set reaches # — add # kg.'],
   ["Qaysi qayiqda eshasiz? Hisoblash qoidasi shunga bog'liq.", 'В какой лодке вы гребёте? От этого зависит правило счёта.', 'Which boat do you paddle? The counting rule depends on it.'],
   ["Baydarka: chap + o'ng = 1 marta", 'Байдарка: влево + вправо = 1 раз', 'Kayak: left + right = 1 count'],
   ['Kanoe: 1 zarba = 1 marta', 'Каноэ: 1 гребок = 1 раз', 'Canoe: 1 stroke = 1 count'],
@@ -269,4 +269,7 @@ PHRASES.push(
   ["🛶 Baydarka — chap + o'ng = 1 marta", '🛶 Байдарка — влево + вправо = 1 раз', '🛶 Kayak — left + right = 1 count'],
   ['🛶 Kanoe — 1 zarba = 1 marta', '🛶 Каноэ — 1 гребок = 1 раз', '🛶 Canoe — 1 stroke = 1 count'],
   ['Jami', 'Итого', 'Total'],
+  ["# ta mashg'ulotingiz bo'yicha", "По вашим # тренировкам рекомендуем начать с", "Based on your # sessions, start with"],
+  ["# kg", "# кг", "# kg"],
+  ["og'irlik #/10", "тяжесть #/10", "effort #/10"],
 )
