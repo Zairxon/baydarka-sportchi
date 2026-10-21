@@ -50,8 +50,11 @@ function load() {
 
 export let state = load()
 
+let afterSave = null
+export const onSave = f => { afterSave = f }
 export function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)) } catch { /* переполнено */ }
+  try { afterSave?.() } catch { /* синхронизация необязательна */ }
 }
 
 export function replaceState(s) {

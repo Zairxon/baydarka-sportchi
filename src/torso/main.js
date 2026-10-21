@@ -1,5 +1,6 @@
 import './style.css'
-import { state, save, today } from './store.js'
+import { state, save, today, onSave } from './store.js'
+import { startHealthSync, scheduleHealthPush } from './health-sync.js'
 import { acts, ins, ctx, fmtTime, toast, closeDd, closeSheet } from './ui.js'
 import { startStepSync, webStepsResume } from './steps.js'
 import { tr, tt, detectLang } from './i18n/core.js'
@@ -180,6 +181,8 @@ document.documentElement.lang = ({ ru: 'ru', uz: 'uz-Cyrl', uzl: 'uz-Latn', en: 
 render()
 startStepSync()
 webStepsResume()
+onSave(scheduleHealthPush)
+startHealthSync()
 syncWidget()
 // «Есть обновление»: проверяем при запуске и при возврате в приложение (не чаще раза в 30 минут)
 const checkNew = async () => { const had = !!updateInfo(); await checkUpdate(); if (!had && updateInfo()) render() }
