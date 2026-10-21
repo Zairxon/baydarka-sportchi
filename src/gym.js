@@ -13,7 +13,7 @@ const WORK_SEC = 40
 
 export const MUSCLES = {
   chest: "Ko'krak", back: 'Orqa', shoulders: 'Yelka', biceps: 'Biceps', triceps: 'Triceps',
-  forearms: 'Bilak va kaft', legs: 'Oyoq va dumba', core: 'Press', special: 'Maxsus', warm: 'Isitish',
+  forearms: 'Bilak va kaft', legs: 'Oyoq va dumba', core: 'Press', special: 'Maxsus', warm: 'Isitish', run: 'Yugurish va sakrash',
 }
 
 export const epley = (w, r) => (r > 0 && w > 0 ? w * (1 + r / 30) : 0)
