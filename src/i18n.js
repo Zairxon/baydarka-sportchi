@@ -29,7 +29,7 @@ const RULES = [
   [new RegExp(`o${APOS}`, 'gi'), 'ў'], [new RegExp(`g${APOS}`, 'gi'), 'ғ'],
   [/sh/gi, 'ш'], [/ch/gi, 'ч'], [/yo/gi, 'ё'], [/yu/gi, 'ю'], [/ya/gi, 'я'], [/ng/gi, 'нг'],
 ]
-function latToCyr(text) {
+export function latToCyr(text) {
   const parts = text.split(PROTECT)
   return parts.map((p, i) => (i % 2 ? p : convert(p))).join('')
 }

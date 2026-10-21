@@ -84,6 +84,7 @@ export function todayHtml() {
     <div class="mnav"><button class="sq" data-act="day" data-d="-1">‹</button><b>${dayLabel(day)}${day === today ? ' · bugun' : ''}</b><button class="sq" data-act="day" data-d="1">›</button></div>
     <div class="panel">${list.length ? `<div class="list">${list.map(sessionItem).join('')}</div>` : "<div class=\"empty\">Bu kunga mashg'ulot rejalashtirilmagan.</div>"}</div>
     ${next.length ? `<h2>Keyingi mashg'ulotlar</h2><div class="panel"><div class="list">${next.map(s => `<div class="dayhead">${dayLabel(s.session_date)}</div>${sessionItem(s)}`).join('')}</div></div>` : ''}
+    <a class="btn" href="./torso/" style="display:block;text-align:center;text-decoration:none">🍎 Salomatlik — ovqat, suv, uyqu, qadam, o'lchamlar</a>
     <button class="btn" data-act="tab" data-tab="stats">📊 Natijalar</button>
   </section>`
 }

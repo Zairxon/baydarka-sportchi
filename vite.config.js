@@ -9,6 +9,7 @@ const versionJson = () => ({ name: 'version-json', generateBundle() { this.emitF
 // Относительные пути: сайт лежит в подпапке GitHub Pages (…github.io/<repo>/).
 export default defineConfig({
   base: './',
+  build: { rollupOptions: { input: { main: new URL('./index.html', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'), torso: new URL('./torso/index.html', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1') } } },
   define: { __BUILD__: JSON.stringify(BUILD), __VERSION__: JSON.stringify(VERSION) },
   plugins: [versionJson()],
   test: { environment: 'node', include: ['test/**/*.test.js'] },
