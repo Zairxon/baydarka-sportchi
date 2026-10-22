@@ -274,4 +274,5 @@ PHRASES.push(
   ['Sm', 'См', 'Cm'],
   ['Yugurish va sakrash', 'Бег и прыжки', 'Running and jumps'],
   ["🍎 Salomatlik — ovqat, suv, uyqu, qadam, o'lchamlar", '🍎 Здоровье — питание, вода, сон, шаги, замеры', '🍎 Health — nutrition, water, sleep, steps, measurements'],
+  ['Tana vazni bilan', 'Со своим весом', 'Bodyweight'],
 )
