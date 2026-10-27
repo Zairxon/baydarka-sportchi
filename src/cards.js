@@ -57,10 +57,13 @@ function initialSets(x, log, sug) {
 
 export function ensureDraft(s, x) {
   let d = S.drafts[x.sx]
+  // Тренер поменял задание (было «40», стало «5×40»), а спортсмен ещё ничего не вносил: черновик собираем заново.
+  const sig = JSON.stringify([x.mode, planSets(x), x.plan?.reps ?? null])
+  if (d && !d.locked && d.sig !== sig && !d.sets.some(r => r.done || r.r || r.w)) { delete S.drafts[x.sx]; d = null }
   if (!d) {
     const log = lastLogFor(x.sx)
     const sug = gymInfo(s, x)?.sug
-    d = S.drafts[x.sx] = { id: log?.id || uuid(), sets: initialSets(x, log, sug) }
+    d = S.drafts[x.sx] = { id: log?.id || uuid(), sets: initialSets(x, log, sug), sig }
     if (log) { d.hr1 = log.heart_rate ?? null; d.hr2 = log.recovery_hr ?? null; d.locked = true }
     saveDrafts()
   }
