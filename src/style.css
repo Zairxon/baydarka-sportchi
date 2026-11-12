@@ -156,3 +156,9 @@ input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid 
 .fup.new{border-color:var(--accent);color:var(--accent);font-weight:700}
 .upd{position:sticky;top:env(safe-area-inset-top,0px);z-index:8;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--accent);color:var(--accent-ink);padding:8px 10px;border-radius:10px;font-size:13px}
 .upd .btn{width:auto;min-height:32px;padding:4px 10px;background:var(--accent-ink);color:var(--accent);border-color:var(--accent-ink);font-size:12px}
+
+/* Сегодняшний день выделен цветом, как у тренера: строка даты залита акцентом, карточка занятий — в акцентной рамке */
+.mnav.today{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 82%,#fff) 0%,var(--accent) 100%);color:var(--accent-ink);border-radius:12px;padding:6px;box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 35%,transparent)}
+.mnav.today b{font-weight:700}
+.mnav.today .sq{background:color-mix(in srgb,var(--accent-ink) 12%,transparent);color:var(--accent-ink);border-color:transparent}
+.panel.today{border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}

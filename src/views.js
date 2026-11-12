@@ -81,8 +81,8 @@ export function todayHtml() {
     <div class="kpis"><div class="kpi"><span>7 kunda mashg'ulot</span><b>${new Set(week.map(l => l.logged_on)).size}</b></div>
       <div class="kpi"><span>Bajarilgan mashq</span><b>${week.length}</b></div>
       <div class="kpi"><span>O'rtacha puls</span><b>${hr.length ? Math.round(hr.reduce((a, b) => a + b, 0) / hr.length) : '—'}</b></div></div>
-    <div class="mnav"><button class="sq" data-act="day" data-d="-1">‹</button><b>${dayLabel(day)}${day === today ? ' · bugun' : ''}</b><button class="sq" data-act="day" data-d="1">›</button></div>
-    <div class="panel">${list.length ? `<div class="list">${list.map(sessionItem).join('')}</div>` : "<div class=\"empty\">Bu kunga mashg'ulot rejalashtirilmagan.</div>"}</div>
+    <div class="mnav${day === today ? ' today' : ''}"><button class="sq" data-act="day" data-d="-1">‹</button><b>${dayLabel(day)}${day === today ? ' · bugun' : ''}</b><button class="sq" data-act="day" data-d="1">›</button></div>
+    <div class="panel${day === today ? ' today' : ''}">${list.length ? `<div class="list">${list.map(sessionItem).join('')}</div>` : "<div class=\"empty\">Bu kunga mashg'ulot rejalashtirilmagan.</div>"}</div>
     ${next.length ? `<h2>Keyingi mashg'ulotlar</h2><div class="panel"><div class="list">${next.map(s => `<div class="dayhead">${dayLabel(s.session_date)}</div>${sessionItem(s)}`).join('')}</div></div>` : ''}
     <a class="btn" href="./torso/" style="display:block;text-align:center;text-decoration:none">🍎 Salomatlik — ovqat, suv, uyqu, qadam, o'lchamlar</a>
     <button class="btn" data-act="tab" data-tab="stats">📊 Natijalar</button>
