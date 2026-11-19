@@ -1,9 +1,11 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js'
-import { S, saveSettings } from './state.js'
+import { S } from './state.js'
 
-// Показ местоположения тренеру. Включается ТОЛЬКО самим спортсменом (профиль → «Joylashuvni ulashish»),
-// работает, пока приложение открыто (браузер не даёт следить в фоне), и выключается в один тап —
-// последняя точка при этом удаляется с сервера.
+// Передача местоположения центру во время, пока приложение открыто.
+// Включено для всех вошедших спортсменов — центр (интернат) отвечает за безопасность
+// несовершеннолетних и видит, где находится ученик в учебное время. В приложении
+// об этом сказано честной строкой в профиле; управлять этим ученик не может.
+// Браузер не следит в фоне, поэтому точка обновляется, только пока приложение открыто.
 let watchId = null
 let lastSent = { t: 0, lat: 0, lng: 0 }
 const MIN_GAP_MS = 20000
@@ -30,46 +32,27 @@ async function push(pos) {
   const { latitude: lat, longitude: lng, accuracy } = pos.coords
   const now = Date.now()
   const moved = lastSent.t ? metres(lastSent, { lat, lng }) : Infinity
-  // Не чаще раза в 20 секунд; стоит на месте — раз в две минуты, чтобы тренер видел «свежесть».
+  // Не чаще раза в 20 секунд; стоит на месте — раз в две минуты, чтобы точка была «свежей».
   if (now - lastSent.t < MIN_GAP_MS || (moved < MIN_MOVE_M && now - lastSent.t < 120000)) return
   lastSent = { t: now, lat, lng }
   try {
     await rpc('athlete_set_location', { p_login: S.auth.login, p_password: S.auth.password, p_lat: lat, p_lng: lng, p_acc: accuracy ?? null })
     S.locState = 'on'
   } catch { S.locState = 'error' }
-  S.render()
 }
-
-export const sharing = () => !!S.settings.share
 
 function watch() {
   if (watchId != null || !('geolocation' in navigator)) return
   watchId = navigator.geolocation.watchPosition(push, err => {
     S.locState = err.code === 1 ? 'denied' : 'error'
-    if (err.code === 1) { S.settings.share = false; saveSettings(); unwatch() }
-    S.render()
   }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 30000 })
 }
 
-function unwatch() {
-  if (watchId != null) { navigator.geolocation.clearWatch(watchId); watchId = null }
-}
-
-export function startSharing() {
-  if (!('geolocation' in navigator)) { S.locState = 'unsupported'; return false }
-  S.settings.share = true; saveSettings()
-  S.locState = 'wait'
+// После входа/запуска: сразу начинаем передавать местоположение.
+export function initLocation() {
+  if (!S.auth) return
+  if (!('geolocation' in navigator)) { S.locState = 'unsupported'; return }
   lastSent = { t: 0, lat: 0, lng: 0 }
+  S.locState = S.locState === 'denied' ? 'denied' : 'wait'
   watch()
-  return true
 }
-
-export async function stopSharing() {
-  S.settings.share = false; saveSettings()
-  unwatch()
-  S.locState = ''
-  try { if (S.auth) await rpc('athlete_stop_location', { p_login: S.auth.login, p_password: S.auth.password }) } catch { /* без сети: точка устареет сама */ }
-}
-
-// После входа/запуска: если спортсмен включал показ раньше, продолжаем.
-export function resumeSharing() { if (S.auth && S.settings.share) watch() }

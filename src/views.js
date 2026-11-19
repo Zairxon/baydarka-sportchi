@@ -4,7 +4,6 @@ import { esc, dayLabel, dayShort, addDays, isoDate, formatDuration } from './uti
 import { muscleLoad, MUSCLES, epley, setKcal, LEVELS } from './gym.js'
 import { RPE_LABELS, finishAdvice, maxHr } from './advice.js'
 import { openSheet } from './ui.js'
-import { sharing } from './location.js'
 import { LANGS, getLang, exName } from './i18n.js'
 
 export const kindOfSession = s => {
@@ -18,7 +17,7 @@ export const kindOfSession = s => {
 const withKind = s => ({ ...s, kind: kindOfSession(s) })
 
 export function heroHtml() {
-  const st = !S.auth ? '' : sharing() ? '<span class="hero-status ok">📍 joylashuv ulashilmoqda</span>' : pendingCount() > 0 ? '<span class="hero-status warn">yuborilmagan yozuvlar bor</span>' : S.online === false ? '<span class="hero-status warn">internet yo\'q</span>' : S.online ? '<span class="hero-status ok">sinxronlangan</span>' : ''
+  const st = !S.auth ? '' : pendingCount() > 0 ? '<span class="hero-status warn">yuborilmagan yozuvlar bor</span>' : S.online === false ? '<span class="hero-status warn">internet yo\'q</span>' : S.online ? '<span class="hero-status ok">sinxronlangan</span>' : ''
   return `<img class="logo" src="./pwa-192x192.png" alt="">
     <div class="hero-t"><div class="hero-title">Baydarka · Sportchi</div><div class="hero-sub">${S.me ? esc(S.me.full_name) + (S.me.group_name ? ' · ' + esc(S.me.group_name) : '') : 'Sportchi kundaligi'}</div>${st}</div>
     <div class="hbtns"><button class="hbtn" data-act="lang" aria-label="Til">🌐</button><button class="hbtn" data-act="theme" aria-label="Mavzu">◐</button>${S.auth ? '<button class="hbtn" data-act="profile" aria-label="Profil">☰</button>' : ''}</div>`
@@ -200,9 +199,8 @@ export function profileSheet() {
     <div class="muted small">${esc(S.me.full_name)}${S.me.age ? ` · ${S.me.age} yosh · maksimal puls ≈ ${maxHr(S.me.age)}` : ''}</div>
     <label class="fld"><span>Vazningiz, kg (zalda kkal hisoblash uchun)</span><input id="pf-w" inputmode="decimal" value="${esc(S.settings.weight)}"></label>
     <div class="fld"><span>Qayiq turi (zarba sanash qoidasi)</span><div class="seg"><button aria-pressed="${!S.settings.boat}" data-act="pfboat" data-b="">Avto</button><button aria-pressed="${S.settings.boat === 'kayak'}" data-act="pfboat" data-b="kayak">Baydarka</button><button aria-pressed="${S.settings.boat === 'canoe'}" data-act="pfboat" data-b="canoe">Kanoe</button></div></div>
-    <div class="fld"><span>Joylashuvni ulashish</span>
-      <button class="btn ${sharing() ? '' : 'ghost'}" data-act="toggleloc">${sharing() ? "📍 Yoqilgan — o'chirish" : "📍 Murabbiyga joylashuvimni ko'rsatish"}</button>
-      <div class="muted small">${sharing() ? "Murabbiyingiz xaritada qayerdaligingizni ko'radi. Ilova ochiq turganda ishlaydi. O'chirsangiz — joylashuv serverdan o'chiriladi." : "Faqat siz yoqsangiz ishlaydi: murabbiy mashg'ulot vaqtida qayerdaligingizni xaritada ko'radi. Istagan paytda o'chirishingiz mumkin."}</div>
+    <div class="fld"><span>📍 Joylashuv</span>
+      <div class="muted small">Markaz xavfsizlik uchun ilova ochiq turganda joylashuvingizni ko'rib turadi.</div>
     </div>
     ${installHtml()}
     <button class="btn ghost" data-act="logout">Chiqish</button>`)

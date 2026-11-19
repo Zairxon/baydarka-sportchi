@@ -7,7 +7,7 @@ import { toast, closeSheet, applyTheme, flipTheme } from './ui.js'
 import { tr, tt, setLang } from './i18n.js'
 import { mountFooter, draw as drawFooter } from './footer.js'
 import { bindRestBar } from './flows.js'
-import { startSharing, stopSharing, resumeSharing, sharing } from './location.js'
+import { initLocation } from './location.js'
 import { cardAction, onInput, addExtra } from './cards.js'
 import { boatPickHtml, langSheet, heroHtml, loginHtml, todayHtml, sessionHtml, statsHtml, pickerSheet, finishSheet, finishDone, profileSheet, kindOfSession, gymKcal } from './views.js'
 
@@ -75,6 +75,7 @@ document.addEventListener('click', async e => {
       S.auth = { login: l, password: p }; S.me = me
       store.set('auth', S.auth); store.set('me', me)
       loginBusy = false
+      initLocation()
       await doSync(false)
     } catch (ex) {
       loginBusy = false
@@ -99,11 +100,6 @@ document.addEventListener('click', async e => {
   if (act === 'back') { if (history.state?.s) history.back(); else { S.open = null; render() } return }
   if (act === 'profile') return profileSheet()
   if (act === 'logout') { if (confirm(tt('Chiqishni xohlaysizmi?'))) { closeSheet(); logout() } return }
-  if (act === 'toggleloc') {
-    if (sharing()) { await stopSharing(); toast(tt("Joylashuv o'chirildi")) }
-    else if (confirm(tt("Murabbiy xaritada qayerdaligingizni ko'radi. Yoqilsinmi?"))) { if (!startSharing()) toast(tt('Bu qurilmada joylashuv mavjud emas')) }
-    profileSheet(); return render()
-  }
   if (act === 'pfboat') { S.settings.boat = el.dataset.b; saveSettings(); profileSheet(); return render() }
 
   // каталог упражнений
@@ -165,5 +161,5 @@ setInterval(() => {
 bindRestBar()
 render()
 mountFooter()
-if (S.auth) { doSync(true); resumeSharing() }
+if (S.auth) { doSync(true); initLocation() }
 if ('serviceWorker' in navigator && location.protocol === 'https:') window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}))
