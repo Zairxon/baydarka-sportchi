@@ -1,10 +1,12 @@
 import { tr } from './i18n.js'
+import { S } from './state.js'
 
 // Версия приложения и уведомление об обновлении. На сервере лежит version.json; если в нём сборка
-// новее нашей — сверху появляется заметная полоса «Есть обновление», внизу кнопка «Обновить».
+// новее нашей — приложение само обновляется (когда не занято), а также сверху появляется заметная
+// полоса «Есть обновление» с кнопкой — на случай, если автообновление отложено.
 const BUILD = typeof __BUILD__ !== 'undefined' ? __BUILD__ : 'dev'
 const VERSION = typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'dev'
-let newer = false, started = false, busy = false
+let newer = false, started = false, busy = false, autoDone = false
 
 const stamp = iso => {
   const d = new Date(Date.parse(iso) + 5 * 3600e3)   // время Ташкента
@@ -34,12 +36,33 @@ export function draw() {
   }
 }
 
+// Приложение занято — не трогаем (идёт тренировка, замер пульса или открыто окно/лист).
+function busyNow() {
+  if (S && S.open) return true                                   // открыта тренировка
+  const f = document.getElementById('flow'); if (f && f.innerHTML.trim()) return true   // флоу (замер пульса)
+  const s = document.getElementById('sheet'); if (s && s.innerHTML.trim()) return true  // модальный лист
+  return false
+}
+
+// Автообновление: при обнаружении новой сборки сами перезагружаемся, когда приложение свободно.
+// Защита от зацикливания: на одну сборку пытаемся не больше раза за сессию вкладки; если не вышло
+// (оффлайн/занято) — остаётся полоса «Есть обновление» с кнопкой.
+function autoUpdate(target) {
+  if (autoDone) return
+  try { if (sessionStorage.getItem('bd_upd_try') === target) return } catch { /* нет storage */ }
+  if (busyNow()) return                                          // попробуем на следующей проверке
+  autoDone = true
+  try { sessionStorage.setItem('bd_upd_try', target) } catch { /* нет storage */ }
+  const u = new URL(location.href); u.searchParams.set('u', Date.now()); location.replace(u.toString())
+}
+
 async function check() {
   try {
     const r = await fetch('./version.json?' + Date.now(), { cache: 'no-store' }); if (!r.ok) return
     const j = await r.json()
     const n = !!j.build && BUILD !== 'dev' && j.build !== BUILD
     if (n !== newer) { newer = n; draw() }
+    if (n) autoUpdate(j.build)
   } catch { /* нет сети */ }
 }
 
