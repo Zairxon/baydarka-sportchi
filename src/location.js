@@ -8,14 +8,16 @@ import { S } from './state.js'
 // Браузер не следит в фоне, поэтому точка обновляется, только пока приложение открыто.
 let watchId = null
 let lastSent = { t: 0, lat: 0, lng: 0 }
+let lastPos = null            // самая свежая координата из watchPosition (для отправки при сворачивании)
 const MIN_GAP_MS = 20000
 const MIN_MOVE_M = 25
 
-async function rpc(name, args) {
+async function rpc(name, args, keepalive = false) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
     method: 'POST',
     headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(args),
+    keepalive,                // запрос доходит, даже если страницу тут же сворачивают/усыпляют
   })
   if (!res.ok) throw new Error(await res.text().catch(() => res.statusText))
 }
@@ -30,6 +32,7 @@ const metres = (a, b) => {
 async function push(pos) {
   if (!S.auth) return
   const { latitude: lat, longitude: lng, accuracy } = pos.coords
+  lastPos = { lat, lng, acc: accuracy ?? null }
   const now = Date.now()
   const moved = lastSent.t ? metres(lastSent, { lat, lng }) : Infinity
   // Не чаще раза в 20 секунд; стоит на месте — раз в две минуты, чтобы точка была «свежей».
@@ -41,11 +44,34 @@ async function push(pos) {
   } catch { S.locState = 'error' }
 }
 
+// При сворачивании/закрытии шлём самую свежую точку сразу (keepalive), чтобы центр видел,
+// где ученик был в этот момент, с точным временем. Фон веб-страница не поддерживает —
+// это последнее, что можно отправить до усыпления.
+function flush() {
+  if (!S.auth || !lastPos) return
+  lastSent = { t: Date.now(), lat: lastPos.lat, lng: lastPos.lng }
+  try {
+    rpc('athlete_set_location', { p_login: S.auth.login, p_password: S.auth.password, p_lat: lastPos.lat, p_lng: lastPos.lng, p_acc: lastPos.acc }, true).catch(() => {})
+  } catch { /* страница уже усыплена */ }
+}
+
 function watch() {
   if (watchId != null || !('geolocation' in navigator)) return
   watchId = navigator.geolocation.watchPosition(push, err => {
     S.locState = err.code === 1 ? 'denied' : 'error'
   }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 30000 })
+}
+
+let bound = false
+function bindOnce() {
+  if (bound) return
+  bound = true
+  // Сворачивание/закрытие — отправить последнюю точку сразу.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush()
+    else if ('geolocation' in navigator && S.auth) navigator.geolocation.getCurrentPosition(push, () => {}, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 })
+  })
+  window.addEventListener('pagehide', flush)
 }
 
 // После входа/запуска: сразу начинаем передавать местоположение.
@@ -55,4 +81,5 @@ export function initLocation() {
   lastSent = { t: 0, lat: 0, lng: 0 }
   S.locState = S.locState === 'denied' ? 'denied' : 'wait'
   watch()
+  bindOnce()
 }
